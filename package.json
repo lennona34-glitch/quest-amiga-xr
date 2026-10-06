@@ -1,0 +1,24 @@
+{
+  "name": "quest-amiga-xr",
+  "version": "1.0.0",
+  "description": "Commodore Amiga Mixed Reality & Immersive VR Emulator for Meta Quest 3 and Windows Chrome",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@emulatorjs/core-puae": "^4.2.3",
+    "@emulatorjs/core-vice_x128": "^4.2.3",
+    "@emulatorjs/core-vice_x64sc": "^4.2.3",
+    "@emulatorjs/core-vice_xplus4": "^4.2.3",
+    "nostalgist": "^0.22.0",
+    "three": "^0.174.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^1.2.0",
+    "vite": "^6.2.0"
+  }
+}

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Amiga PUAE Engine (AGA & CD32)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #game-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+    #game {
+      aspect-ratio: 4 / 3;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    #game.c128-vdc-80 {
+      aspect-ratio: 4 / 3 !important;
+    }
+    /* CRT filter is rendered authentically via WebGL GLSL shader (crt-easymode.glslp) */
+    @media (max-aspect-ratio: 4/3) {
+      #game {
+        width: 100%;
+        height: auto;
+      }
+    }
+    .ejs_canvas_parent,
+    #game .ejs_parent {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #game canvas,
+    #game .ejs_canvas,
+    .ejs_canvas_parent canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: fill !important;
+    }
+    .ejs_menu_bar,
+    .ejs_bottom_bar,
+    .ejs_menu,
+    .ejs_quick_menu,
+    .ejs_settings_menu,
+    .ejs_menu_toggle,
+    .ejs_virtualGamepad_open {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    .c128-toggle-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #38bdf8;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #38bdf8;
+      cursor: pointer;
+      z-index: 20;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+    .c128-toggle-badge:hover {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+    #loading_overlay {
+      position: absolute;
+      inset: 0;
+      background: #080a10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: opacity 0.5s ease;
+      gap: 16px;
+    }
+    .puae-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #1e293b;
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .puae-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      text-transform: uppercase;
+    }
+    .puae-subtitle {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="loading_overlay">
+      <div class="puae-spinner"></div>
+      <div class="puae-title">PUAE Core Initializing</div>
+      <div class="puae-subtitle" id="puae_status">Loading AGA & CD32 Hardware Engine...</div>
+    </div>
+    <div id="game"></div>
+  </div>
+
+  <script>
+    // Parse URL hash for configuration
+    let config = {};
+    try {
+      if (window.location.hash.length > 1) {
+        config = JSON.parse(decodeURIComponent(window.location.hash.substring(1)));
+      }
+    } catch (e) {
+      console.warn('[PUAE] Config parse error:', e);
+    }
+
+    const crtPref = (config.crt !== undefined) ? !!config.crt : (localStorage.getItem('crt_filter_enabled') === 'true');
+    const initialGameEl = document.getElementById('game');
+    if (initialGameEl) {
+      initialGameEl.classList.toggle('crt-active', crtPref);
+    }
+
+    const activeCore = config.core || 'amiga';
+    const coreNames = {
+      c64: 'Commodore 64',
+      c128: 'Commodore 128',
+      plus4: 'Commodore Plus/4',
+      vic20: 'Commodore VIC-20',
+      amiga: 'Commodore Amiga'
+    };
+
+    let defaultGameUrl = config.gameUrl;
+    const reqModel = config.model || '';
+    const tempUrlLower = (defaultGameUrl || '').toLowerCase();
+    const isCd32 = activeCore === 'cd32' ||
+                   reqModel === 'CD32' ||
+                   tempUrlLower.includes('cd32') ||
+                   tempUrlLower.includes('.iso') ||
+                   tempUrlLower.includes('.cue') ||
+                   tempUrlLower.includes('.chd') ||
+                   tempUrlLower.includes('.nrg') ||
+                   (config.title && config.title.toLowerCase().includes('cd32'));
+
+    if (!defaultGameUrl || defaultGameUrl.trim() === '') {
+      if (activeCore === 'c64') defaultGameUrl = '/disks/c64_guardian.prg';
+      else if (activeCore === 'c128') defaultGameUrl = '/disks/c128_guardian.prg';
+      else if (activeCore === 'plus4') defaultGameUrl = '/disks/plus4_guardian.prg';
+      else if (activeCore === 'vic20') defaultGameUrl = '/disks/c64_blank.d64';
+      else if (isCd32) defaultGameUrl = '';
+      else defaultGameUrl = '/disks/blank.adf';
+    }
+
+    const gameUrlLower = (defaultGameUrl || '').toLowerCase();
+    const isAga = !isCd32 && (
+      reqModel === 'A1200' ||
+      activeCore === 'aga' ||
+      gameUrlLower.includes('(aga)') ||
+      gameUrlLower.includes('[aga]') ||
+      (config.title && (config.title.toLowerCase().includes('(aga)') || config.title.toLowerCase().includes('aga')))
+    );
+
+    let puaeModel = 'A500';
+    if (isCd32) {
+      puaeModel = 'CD32';
+    } else if (reqModel === 'A500') {
+      puaeModel = 'A500';
+    } else if (reqModel === 'A1200' || isAga) {
+      puaeModel = 'A1200';
+    } else if (reqModel) {
+      puaeModel = reqModel;
+    }
+
+    window.puae_frames = 0;
+    const origRAF = window.requestAnimationFrame;
+    window.requestAnimationFrame = function(cb) {
+      window.puae_frames++;
+      return origRAF(cb);
+    };
+
+
+    if (isCd32) {
+      document.title = 'Commodore Amiga CD32 - Commodore Guardian';
+    } else if (puaeModel === 'A1200') {
+      document.title = 'Commodore Amiga 1200 AGA - Commodore Guardian';
+    } else {
+      document.title = `${coreNames[activeCore] || 'Commodore'} - Commodore Guardian`;
+    }
+
+    const titleEl = document.querySelector('.puae-title');
+    const statusEl = document.getElementById('puae_status');
+    const overlay = document.getElementById('loading_overlay');
+
+    if (titleEl) {
+      if (isCd32) titleEl.textContent = 'Commodore Amiga CD32 Initializing';
+      else if (puaeModel === 'A1200') titleEl.textContent = 'Commodore Amiga 1200 (AGA) Initializing';
+      else if (activeCore === 'c64') titleEl.textContent = 'Commodore 64 Initializing';
+      else if (activeCore === 'c128') titleEl.textContent = 'Commodore 128 Initializing';
+      else if (activeCore === 'plus4') titleEl.textContent = 'Commodore Plus/4 Initializing';
+      else if (activeCore === 'vic20') titleEl.textContent = 'Commodore VIC-20 Initializing';
+      else titleEl.textContent = 'Commodore Amiga (PUAE) Initializing';
+    }
+    if (statusEl) {
+      if (isCd32) statusEl.textContent = 'Loading CD32 Akiko CD-ROM Controller & AGA Engine...';
+      else if (puaeModel === 'A1200') statusEl.textContent = 'Loading Motorola 68020 32-Bit & AGA Lisa Engine...';
+      else if (activeCore === 'c64') statusEl.textContent = 'Loading MOS 6510, SID 6581 & VIC-II (VICE x64sc)...';
+      else if (activeCore === 'c128') statusEl.textContent = 'Loading Dual-CPU 8502/Z80 & VDC 80-Col (VICE x128)...';
+      else if (activeCore === 'plus4') statusEl.textContent = 'Loading MOS 7501 & TED 7360 121-Color (VICE xplus4)...';
+      else if (activeCore === 'vic20') statusEl.textContent = 'Loading VIC-20 6502 & VIC 6560 (VICE xvic)...';
+      else statusEl.textContent = 'Loading AGA & CD32 Hardware Engine...';
+    }
+
+    // Track and hook all WebAudio AudioContext instances (VICE + PUAE)
+    window.__allAudioContexts = [];
+    const OrigAudioContext = window.AudioContext || window.webkitAudioContext;
+    if (OrigAudioContext) {
+      const TrackedAudioContext = class extends OrigAudioContext {
+        constructor(options) {
+          const opts = Object.assign({ latencyHint: 'balanced' }, options);
+          if (opts.latencyHint === 'interactive') {
+            opts.latencyHint = 'balanced';
+          }
+          super(opts);
+          window.__allAudioContexts.push(this);
+          console.log('[AUDIO TRACKER] AudioContext created, sampleRate:', this.sampleRate, 'state:', this.state, 'latencyHint:', opts.latencyHint);
+        }
+      };
+      window.AudioContext = TrackedAudioContext;
+      window.webkitAudioContext = TrackedAudioContext;
+    }
+
+    // Read warp boot preference (defaults to enabled for instant fast boot)
+    let isWarpBoot = true;
+    try {
+      if (config.warpBoot !== undefined) {
+        isWarpBoot = !!config.warpBoot;
+      } else if (localStorage.getItem('c64_warp_boot') !== null) {
+        isWarpBoot = localStorage.getItem('c64_warp_boot') !== 'false';
+      }
+    } catch(e) {}
+
+    // Hi-Fi Core Options (Smooth 50/60fps playback without audio buffer underruns):
+    // Only enable vice_autoloadwarp if there is actual game media mounted, avoiding ?FILE NOT FOUND ERROR on clean machine boot
+    const hasMedia = !!defaultGameUrl && defaultGameUrl !== '' && !defaultGameUrl.includes('guardian.prg') && !defaultGameUrl.includes('blank.');
+    const is80Col = gameUrlLower.includes('80 column') ||
+                   gameUrlLower.includes('80 col') ||
+                   gameUrlLower.includes('80col') ||
+                   gameUrlLower.includes('80 ') ||
+                   (config.title && (
+                     config.title.toLowerCase().includes('80 column') ||
+                     config.title.toLowerCase().includes('80 col') ||
+                     config.title.toLowerCase().includes('[80')
+                   ));
+
+    if (activeCore === 'c128') {
+      window.EJS_defaultOptions = {
+        vice_c128_video_output: is80Col ? "VDC" : "VICII",
+        vice_aspect_ratio: "pal",
+        vice_crop: "auto",
+        vice_crop_mode: "4:3",
+        vice_autostart: "warp",
+        vice_autoloadwarp: (hasMedia && isWarpBoot) ? "enabled" : "disabled",
+        vice_warp_boost: "enabled",
+        vice_sound_sample_rate: "48000",
+        vice_sid_model: "6581",
+        vice_sid_engine: "FastSID",
+        vice_resid_sampling: "fast",
+        vice_joyport: "2",
+        vice_drive_true_emulation: hasMedia ? "enabled" : "disabled",
+        vice_virtual_device_traps: hasMedia ? "disabled" : "enabled"
+      };
+    } else if (activeCore === 'c64' || activeCore === 'plus4' || activeCore === 'vic20') {
+      window.EJS_defaultOptions = {
+        vice_aspect_ratio: "auto",
+        vice_autostart: "warp",
+        vice_autoloadwarp: (hasMedia && isWarpBoot) ? "enabled" : "disabled",
+        vice_warp_boost: "enabled",
+        vice_sound_sample_rate: "48000",
+        vice_sid_model: "6581",
+        vice_sid_engine: "FastSID",
+        vice_resid_sampling: "fast",
+        vice_joyport: "2",
+        vice_drive_true_emulation: "disabled",
+        vice_virtual_device_traps: "enabled"
+      };
+    } else {
+      window.EJS_defaultOptions = {
+        puae_sound_filter: "off",
+        puae_sound_interpol: "anti",
+        puae_sound_stereo_separation: "80%",
+        puae_model: puaeModel,
+        puae_model_cd: "CD32",
+        puae_model_fd: isCd32 ? "A500" : (puaeModel === "A1200" ? "A1200" : "A500"),
+        puae_kickstart: isCd32 ? "auto" : (puaeModel === "A1200" ? "kick40068.A1200" : "kick34005.A500"),
+        puae_floppy_multidrive: isCd32 ? "disabled" : "enabled",
+        puae_floppy_speed: isCd32 ? "100" : "0",
+        puae_autoloadfastforward: isCd32 ? "disabled" : "fd",
+        puae_joyport: "joystick",
+        puae_cd_startup_delayed_insert: "disabled",
+        puae_cd32pad_options: isCd32 ? "jump" : "disabled",
+        puae_cd_speed: "0",
+        puae_cpu_multiplier: "0",
+        puae_immediate_blits: "false"
+      };
+    }
+
+    if (config.options && window.EJS_defaultOptions) {
+      Object.assign(window.EJS_defaultOptions, config.options);
+    }
+
+    const isCrtActive = (config.crt !== undefined) ? !!config.crt : (localStorage.getItem('crt_filter_enabled') === 'true');
+    const targetShader = isCrtActive ? "crt-easymode.glslp" : "disabled";
+
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        const item = localStorage.getItem(k);
+        if (item && (item.includes('shader') || item.includes('settings'))) {
+          try {
+            const parsed = JSON.parse(item);
+            if (parsed && parsed.settings && parsed.settings.shader !== undefined) {
+              parsed.settings.shader = targetShader;
+              localStorage.setItem(k, JSON.stringify(parsed));
+            }
+          } catch(e) {}
+        }
+      }
+    } catch(e) {}
+
+    window.EJS_defaultShader = targetShader;
+    window.EJS_shader = targetShader;
+    window.EJS_volume = 1.0;
+    window.EJS_DEBUG_XX = true;
+    window.EJS_model = puaeModel;
+    window.EJS_player = '#game';
+    window.EJS_core = (activeCore === 'cd32') ? 'amiga' : activeCore;
+    window.EJS_gameUrl = defaultGameUrl;
+    window.EJS_pathtodata = '/emulatorjs/';
+    window.EJS_threads = false;
+    window.EJS_webgl2 = true;
+    window.EJS_disableCue = false;
+    window.EJS_disableDatabases = true;
+    window.EJS_hideSettings = true;
+    window.EJS_noAutoFocus = true;
+    window.EJS_CacheLimit = 0;
+    window.EJS_defaultControls = {
+      0: { 24: {}, 25: {}, 26: {} },
+      1: {},
+      2: {},
+      3: {}
+    };
+
+    window.EJS_biosUrl = '';
+    if (activeCore === 'amiga' || activeCore === 'cd32' || activeCore === 'aga') {
+      // Direct raw Kickstarts mounted for the specific active Commodore model:
+      window.EJS_externalFiles = {};
+      const mountRom = (targetBase, src) => {
+        const prefixes = [
+          "/home/web_user/retroarch/userdata/system/",
+          "/home/web_user/retroarch/system/",
+          "/system/",
+          "/system/uae/",
+          "/"
+        ];
+        for (const p of prefixes) {
+          window.EJS_externalFiles[p + targetBase] = src;
+          window.EJS_externalFiles[p + targetBase.toLowerCase()] = src;
+        }
+      };
+
+      // CD32
+      mountRom("kick40060.CD32", "/roms/kick40060.CD32");
+      mountRom("kick40060.CD32.ext", "/roms/kick40060.CD32.ext");
+      mountRom("cd32.rom", "/roms/kick40060.CD32");
+      mountRom("cd32_ext.rom", "/roms/kick40060.CD32.ext");
+      mountRom("amiga-os-310-cd32.rom", "/roms/kick40060.CD32");
+      mountRom("amiga-os-310-cd32-ext.rom", "/roms/kick40060.CD32.ext");
+
+      // A1200 AGA
+      mountRom("kick40068.A1200", "/roms/kick40068.A1200");
+      mountRom("kick31.rom", "/roms/kick40068.A1200");
+      mountRom("amiga-os-310-a1200.rom", "/roms/kick40068.A1200");
+
+      // A500 OCS/ECS
+      mountRom("kick34005.A500", "/roms/kick34005.A500");
+      mountRom("kick37175.A500", "/roms/kick37175.A500");
+      mountRom("kick13.rom", "/roms/kick34005.A500");
+      mountRom("kick204.rom", "/roms/kick37175.A500");
+      mountRom("amiga-os-130.rom", "/roms/kick34005.A500");
+      window.EJS_color = '#0055aa';
+    } else if (activeCore === 'c64') {
+      window.EJS_color = '#4040a0';
+    } else if (activeCore === 'c128') {
+      window.EJS_color = '#008855';
+
+      let currentC128Output = is80Col ? "VDC" : "VICII";
+      const updateC128Aspect = () => {
+        const gameEl = document.getElementById('game');
+        if (gameEl) {
+          if (currentC128Output === 'VDC') {
+            gameEl.classList.add('c128-vdc-80');
+          } else {
+            gameEl.classList.remove('c128-vdc-80');
+          }
+        }
+      };
+      updateC128Aspect();
+
+      const toggleBadge = document.createElement('div');
+      toggleBadge.id = 'c128_toggle';
+      toggleBadge.className = 'c128-toggle-badge';
+      toggleBadge.innerHTML = `<span>📺 ${currentC128Output === 'VDC' ? '80-Col (VDC)' : '40-Col (VIC-II)'}</span> <span style="opacity:0.6;font-size:9px">[F7]</span>`;
+      toggleBadge.title = "Click or press F7 to toggle between 40-Column (VIC-II) and 80-Column (VDC) display";
+
+      const setC128Output = (targetOutput) => {
+        currentC128Output = targetOutput;
+        toggleBadge.innerHTML = `<span>📺 ${currentC128Output === 'VDC' ? '80-Col (VDC)' : '40-Col (VIC-II)'}</span> <span style="opacity:0.6;font-size:9px">[F7]</span>`;
+        updateC128Aspect();
+        console.log('[C128] Switching video output to:', currentC128Output);
+        if (window.EJS_emulator) {
+          if (window.EJS_emulator.gameManager && typeof window.EJS_emulator.gameManager.setVariable === 'function') {
+            try {
+              window.EJS_emulator.gameManager.setVariable('vice_c128_video_output', currentC128Output);
+            } catch(e) {}
+          }
+          if (typeof window.EJS_emulator.menuOptionChanged === 'function') {
+            try {
+              window.EJS_emulator.menuOptionChanged('vice_c128_video_output', currentC128Output);
+            } catch(e) {}
+          }
+          if (typeof window.EJS_emulator.changeSettingOption === 'function') {
+            try {
+              window.EJS_emulator.changeSettingOption('vice_c128_video_output', currentC128Output);
+            } catch(e) {}
+          }
+        }
+      };
+
+      const toggleVideo = () => {
+        const nextOutput = (currentC128Output === 'VICII') ? 'VDC' : 'VICII';
+        setC128Output(nextOutput);
+      };
+
+      toggleBadge.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleVideo();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'F7' || e.code === 'F7' || e.keyCode === 118) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleVideo();
+        }
+      }, true);
+      document.body.appendChild(toggleBadge);
+    } else if (activeCore === 'plus4') {
+      window.EJS_color = '#732c1c';
+    } else if (activeCore === 'vic20') {
+      window.EJS_color = '#00aaaa';
+    }
+    window.EJS_startOnLoaded = true;
+    window.EJS_align = 'center';
+
+    function dismissOverlay() {
+      if (overlay && overlay.style.display !== 'none') {
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.display = 'none'; }, 400);
+      }
+      const loadingEl = document.querySelector('.ejs_loading_text');
+      if (loadingEl) {
+        loadingEl.style.display = 'none';
+      }
+      window.parent.postMessage({ msg: 'render_run_state', value: true }, '*');
+    }
+
+    window.EJS_onGameStart = function() {
+      console.log('[PUAE] Game started successfully (onGameStart)');
+      dismissOverlay();
+    };
+
+    window.EJS_ready = function() {
+      console.log('[PUAE] EmulatorJS ready hook');
+      if (window.EJS_emulator) {
+        window.EJS_emulator.on('start', () => {
+          console.log('[PUAE] EmulatorJS start event triggered');
+          dismissOverlay();
+        });
+      }
+    };
+
+    // Watch #game for loading text updates, errors, and actual emulation start
+    const gameElem = document.getElementById('game');
+    const observer = new MutationObserver(() => {
+      const loadingText = gameElem.querySelector('.ejs_loading_text');
+      const errorText = gameElem.querySelector('.ejs_error_text');
+
+      if (errorText && statusEl) {
+        statusEl.textContent = errorText.textContent || 'Failed to initialize emulator core.';
+        statusEl.style.color = '#f87171';
+      } else if (loadingText && statusEl) {
+        statusEl.textContent = loadingText.textContent;
+      }
+
+      if (window.EJS_emulator && window.EJS_emulator.started) {
+        dismissOverlay();
+      }
+    });
+    observer.observe(gameElem, { childList: true, subtree: true, characterData: true });
+
+    // Failsafe timer check: dismiss overlay as soon as emulator started or rendering frames
+    const canvasCheck = setInterval(() => {
+      if ((window.EJS_emulator && window.EJS_emulator.started) || (window.puae_frames && window.puae_frames > 45)) {
+        clearInterval(canvasCheck);
+        dismissOverlay();
+      }
+    }, 250);
+
+    // Unconditional failsafe to prevent permanent frozen overlay if start event is missed
+    setTimeout(() => {
+      dismissOverlay();
+    }, 12000);
+
+    // Intercept function keys (F1-F12) to prevent Chrome help / reload shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key && (e.key === 'F1' || /^F([1-9]|1[0-2])$/.test(e.key) || e.key === 'Tab')) {
+        e.preventDefault();
+      }
+    }, { capture: true });
+
+    // Forward pointer lock events to parent window
+    document.addEventListener('pointerlockchange', () => {
+      const locked = document.pointerLockElement !== null;
+      window.parent.postMessage({ msg: 'pointer_lock_change', locked }, '*');
+    });
+
+    // Middle-click (button 1) traps or releases pointer lock
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (document.pointerLockElement) {
+          if (document.exitPointerLock) document.exitPointerLock();
+        } else {
+          const canvas = document.querySelector('canvas');
+          if (canvas && canvas.requestPointerLock) {
+            canvas.requestPointerLock();
+          }
+        }
+      }
+    }, true);
+    window.addEventListener('auxclick', (e) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    // Forward gamepad status in PUAE to host
+    window.addEventListener('gamepadconnected', (e) => {
+      try {
+        if (e && e.gamepad) {
+          window.parent.postMessage({ msg: 'gamepad_status', connected: true, id: e.gamepad.id, index: e.gamepad.index }, '*');
+        }
+      } catch(err) {}
+    });
+    window.addEventListener('gamepaddisconnected', (e) => {
+      try {
+        if (e && e.gamepad) {
+          window.parent.postMessage({ msg: 'gamepad_status', connected: false, id: e.gamepad.id }, '*');
+        }
+      } catch(err) {}
+    });
+
+    // Unconditionally resume WebAudio on any interaction across all engines (PUAE & VICE)
+    const unlockPuaeAudio = async () => {
+      // 1. Resume all tracked AudioContext instances
+      if (window.__allAudioContexts && window.__allAudioContexts.length > 0) {
+        for (const ctx of window.__allAudioContexts) {
+          if (ctx && ctx.state === 'suspended') {
+            try {
+              await ctx.resume();
+              console.log('[AUDIO UNLOCK] Resumed tracked AudioContext:', ctx.state);
+            } catch (e) {}
+          }
+        }
+      }
+
+      // 2. Resume OpenAL audio context from Emscripten Module
+      if (window.EJS_emulator && window.EJS_emulator.Module && window.EJS_emulator.Module.AL) {
+        const al = window.EJS_emulator.Module.AL;
+        if (al.currentCtx && al.currentCtx.audioCtx && al.currentCtx.audioCtx.state === 'suspended') {
+          try {
+            await al.currentCtx.audioCtx.resume();
+            console.log('[AUDIO UNLOCK] Resumed Module.AL.currentCtx.audioCtx');
+          } catch (e) {}
+        }
+        if (al.currentCtx && al.currentCtx.sources) {
+          al.currentCtx.sources.forEach(src => {
+            if (src.gain && src.gain.context && src.gain.context.state === 'suspended') {
+              try { src.gain.context.resume(); } catch (e) {}
+            }
+          });
+        }
+      }
+
+      // 3. Unmute and force max volume
+      if (window.EJS_emulator && typeof window.EJS_emulator.setVolume === 'function') {
+        window.EJS_emulator.muted = false;
+        window.EJS_emulator.setVolume(1.0);
+      }
+    };
+
+    window.addEventListener('click', unlockPuaeAudio, { passive: true });
+    window.addEventListener('pointerdown', unlockPuaeAudio, { passive: true });
+    window.addEventListener('keydown', unlockPuaeAudio, { passive: true });
+    window.addEventListener('touchstart', unlockPuaeAudio, { passive: true });
+
+    // Periodic check to resume suspended audio during loading
+    const audioInterval = setInterval(() => {
+      if (window.__allAudioContexts && window.__allAudioContexts.some(c => c && c.state === 'suspended')) {
+        unlockPuaeAudio();
+      }
+    }, 400);
+
+    window.addEventListener('message', async (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      if (data.cmd === 'reset' || data === 'reset()') {
+        console.log('[PUAE] Reset requested');
+        if (window.EJS_emulator && window.EJS_emulator.gameManager) {
+          window.EJS_emulator.gameManager.restart();
+        }
+      } else if (data.cmd === 'request_pointer_lock') {
+        const canvas = document.querySelector('canvas');
+        if (canvas && canvas.requestPointerLock) canvas.requestPointerLock();
+      } else if (data.cmd === 'exit_pointer_lock') {
+        if (document.exitPointerLock) document.exitPointerLock();
+      } else if (data.cmd === 'resume_audio' || data === 'resume_audio') {
+        unlockPuaeAudio();
+      } else if (data.cmd === 'toggle_crt') {
+        const gameEl = document.getElementById('game');
+        const enable = (data.enabled !== undefined) ? !!data.enabled : (gameEl ? !gameEl.classList.contains('crt-active') : false);
+        if (gameEl) {
+          gameEl.classList.toggle('crt-active', enable);
+        }
+        if (window.EJS_emulator && typeof window.EJS_emulator.enableShader === 'function') {
+          window.EJS_emulator.enableShader(enable ? 'crt-easymode.glslp' : 'disabled');
+        }
+      } else if (data.cmd === 'load') {
+        console.log('[PUAE] Live disk load received:', data.file_name || data.gameUrl, 'drive:', data.drive, 'boot:', data.boot);
+        try {
+          const isSecondary = (data.drive !== undefined && data.drive > 0) || (data.boot === false);
+          if (isSecondary) {
+            console.log(`[PUAE] Live mounting secondary disk into Drive ${data.drive || 1} without rebooting console:`, data.file_name);
+            let rawBytes = null;
+            if (data.file) {
+              rawBytes = new Uint8Array(data.file);
+            } else if (data.gameUrl) {
+              const res = await fetch(data.gameUrl);
+              if (res.ok) {
+                const buf = await res.arrayBuffer();
+                rawBytes = new Uint8Array(buf);
+              }
+            }
+            if (rawBytes && window.EJS_emulator && window.EJS_emulator.gameManager && window.EJS_emulator.gameManager.FS) {
+              const fs = window.EJS_emulator.gameManager.FS;
+              const cleanName = (data.file_name || `df${data.drive || 1}.adf`).replace(/[\/\\]/g, '_').trim();
+              const diskPath = `/${cleanName}`;
+              fs.writeFile(diskPath, rawBytes);
+              fs.writeFile(`/df${data.drive || 1}.adf`, rawBytes);
+              if (typeof window.EJS_emulator.gameManager.setCurrentDisk === 'function') {
+                try {
+                  window.EJS_emulator.gameManager.setCurrentDisk(data.drive || 1);
+                } catch(e) {}
+              }
+              console.log(`[PUAE] Secondary disk successfully mounted into ${diskPath} & /df${data.drive || 1}.adf`);
+            }
+            return;
+          }
+
+          let targetUrl = data.gameUrl;
+          if (!targetUrl && data.file) {
+            const blob = new Blob([data.file]);
+            targetUrl = URL.createObjectURL(blob);
+          }
+          if (targetUrl) {
+            let nextCore = data.core;
+            const lowerName = (data.file_name || targetUrl).toLowerCase();
+            if (!nextCore) {
+              if (lowerName.includes('plus4') || lowerName.includes('+4')) nextCore = 'plus4';
+              else if (lowerName.includes('c128') || lowerName.endsWith('.d71')) nextCore = 'c128';
+              else if (lowerName.endsWith('.d64') || lowerName.endsWith('.t64') || lowerName.includes('c64')) nextCore = 'c64';
+              else nextCore = activeCore;
+            }
+            const nextModel = data.model || (nextCore === 'cd32' ? 'CD32' : (nextCore === 'amiga' ? 'A1200' : null));
+            window.location.hash = encodeURIComponent(JSON.stringify({ core: nextCore, model: nextModel, gameUrl: targetUrl, title: data.file_name }));
+            window.location.reload();
+          }
+        } catch (e) {
+          console.error('[PUAE] Error handling live load:', e);
+        }
+      } else if (data.cmd === 'remote_key') {
+        const evType = data.subType || 'keydown';
+        const keyCode = data.keyCode || data.which || 0;
+        const ev = new KeyboardEvent(evType, {
+          key: data.key || '',
+          code: data.code || '',
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          shiftKey: !!data.shiftKey,
+          ctrlKey: !!data.ctrlKey,
+          altKey: !!data.altKey,
+          metaKey: !!data.metaKey
+        });
+        Object.defineProperty(ev, 'keyCode', { value: keyCode, writable: true, configurable: true });
+        Object.defineProperty(ev, 'which', { value: keyCode, writable: true, configurable: true });
+        Object.defineProperty(ev, 'charCode', { value: (data.key && data.key.length === 1) ? data.key.charCodeAt(0) : 0, writable: true, configurable: true });
+
+        window.dispatchEvent(ev);
+        document.dispatchEvent(ev);
+        const gameEl = document.querySelector('#game');
+        if (gameEl) gameEl.dispatchEvent(ev);
+        const canvas = document.querySelector('canvas');
+        if (canvas) canvas.dispatchEvent(ev);
+
+        // Also simulate input directly into RetroArch core if it corresponds to standard joy/action keys
+        const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+        if (gm && typeof gm.simulateInput === 'function') {
+          const isDown = (evType === 'keydown');
+          if (data.code === 'ArrowUp' || keyCode === 38) gm.simulateInput(0, 4, isDown ? 1 : 0);
+          else if (data.code === 'ArrowDown' || keyCode === 40) gm.simulateInput(0, 5, isDown ? 1 : 0);
+          else if (data.code === 'ArrowLeft' || keyCode === 37) gm.simulateInput(0, 6, isDown ? 1 : 0);
+          else if (data.code === 'ArrowRight' || keyCode === 39) gm.simulateInput(0, 7, isDown ? 1 : 0);
+          else if (data.code === 'KeyX' || keyCode === 88 || data.code === 'ControlLeft') {
+            gm.simulateInput(0, 8, isDown ? 1 : 0); // Fire 1 / A
+            gm.simulateInput(0, 0, isDown ? 1 : 0); // Fire 1 / B
+          } else if (data.code === 'KeyZ' || keyCode === 90 || data.code === 'AltLeft') {
+            gm.simulateInput(0, 1, isDown ? 1 : 0); // Fire 2 / Y
+            gm.simulateInput(0, 9, isDown ? 1 : 0); // Fire 2 / X
+          } else if (data.code === 'Enter' || keyCode === 13) {
+            gm.simulateInput(0, 3, isDown ? 1 : 0); // Start / Play
+          }
+        }
+      } else if (data.cmd === 'remote_mouse') {
+        const canvas = document.querySelector('canvas') || window;
+        const rect = (canvas.getBoundingClientRect && typeof canvas.getBoundingClientRect === 'function')
+          ? canvas.getBoundingClientRect()
+          : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        const cx = (data.clientX !== undefined) ? data.clientX : (rect.left + rect.width / 2);
+        const cy = (data.clientY !== undefined) ? data.clientY : (rect.top + rect.height / 2);
+        let ev;
+        if (data.subType === 'mousemove') {
+          ev = new MouseEvent('mousemove', {
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+            movementX: data.movementX || 0,
+            movementY: data.movementY || 0,
+            clientX: cx,
+            clientY: cy,
+            screenX: cx,
+            screenY: cy,
+            buttons: (data.buttons !== undefined) ? data.buttons : 0
+          });
+        } else {
+          ev = new MouseEvent(data.subType, {
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+            clientX: cx,
+            clientY: cy,
+            button: (data.button !== undefined) ? data.button : 0,
+            buttons: (data.buttons !== undefined) ? data.buttons : (data.subType === 'mousedown' ? 1 : 0)
+          });
+        }
+        if (canvas !== window) canvas.dispatchEvent(ev);
+        document.dispatchEvent(ev);
+        window.dispatchEvent(ev);
+      } else if (data.cmd === 'joystick') {
+        if (window.__lastJoyState === undefined) window.__lastJoyState = {};
+        const last = window.__lastJoyState;
+
+        const simulateKey = (code, key, keyCode, isDown) => {
+          try {
+            const ev = new KeyboardEvent(isDown ? 'keydown' : 'keyup', {
+              code, key, bubbles: true, cancelable: true, composed: true
+            });
+            Object.defineProperty(ev, 'keyCode', { value: keyCode, writable: true, configurable: true });
+            Object.defineProperty(ev, 'which', { value: keyCode, writable: true, configurable: true });
+            window.dispatchEvent(ev);
+          } catch(e) {}
+        };
+
+        if (data.up !== last.up) simulateKey('ArrowUp', 'ArrowUp', 38, !!data.up);
+        if (data.down !== last.down) simulateKey('ArrowDown', 'ArrowDown', 40, !!data.down);
+        if (data.left !== last.left) simulateKey('ArrowLeft', 'ArrowLeft', 37, !!data.left);
+        if (data.right !== last.right) simulateKey('ArrowRight', 'ArrowRight', 39, !!data.right);
+        if (data.fire !== last.fire) simulateKey('KeyX', 'x', 88, !!data.fire);
+        if (data.fire2 !== last.fire2) simulateKey('KeyZ', 'z', 90, !!data.fire2);
+        if (data.play !== undefined && data.play !== last.play) simulateKey('Enter', 'Enter', 13, !!data.play);
+
+        // Hardware simulation directly in RetroArch Emscripten core
+        try {
+          const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+          if (gm && typeof gm.simulateInput === 'function') {
+            const port = (data.port === 2) ? 1 : (data.port === 1 ? 0 : 0);
+            if (data.up !== last.up) gm.simulateInput(port, 4, data.up ? 1 : 0);
+            if (data.down !== last.down) gm.simulateInput(port, 5, data.down ? 1 : 0);
+            if (data.left !== last.left) gm.simulateInput(port, 6, data.left ? 1 : 0);
+            if (data.right !== last.right) gm.simulateInput(port, 7, data.right ? 1 : 0);
+            if (data.fire !== last.fire) {
+              gm.simulateInput(port, 8, data.fire ? 1 : 0); // Button A / Fire 1 (Red)
+              gm.simulateInput(port, 0, data.fire ? 1 : 0); // Button B
+            }
+            if (data.fire2 !== last.fire2) {
+              gm.simulateInput(port, 1, data.fire2 ? 1 : 0); // Button Y / Fire 2 (Blue)
+              gm.simulateInput(port, 9, data.fire2 ? 1 : 0); // Button X
+            }
+            if (data.play !== undefined && data.play !== last.play) {
+              gm.simulateInput(port, 3, data.play ? 1 : 0); // Start / Play button
+            }
+          }
+        } catch(simErr) {}
+
+        window.__lastJoyState = { ...data };
+      }
+    });
+
+    // Ensure canvas and #game maintain focus for direct typing
+    window.addEventListener('load', () => {
+      const focusGame = () => {
+        const el = document.querySelector('canvas') || document.querySelector('#game');
+        if (el && typeof el.focus === 'function') el.focus();
+        if (window.EJS_emulator && window.EJS_emulator.gameManager && typeof window.EJS_emulator.gameManager.setKeyboardEnabled === 'function') {
+          window.EJS_emulator.gameManager.setKeyboardEnabled(true);
+        }
+      };
+      window.addEventListener('click', focusGame);
+      window.addEventListener('pointerdown', focusGame);
+      setInterval(() => {
+        if (window.EJS_emulator && window.EJS_emulator.gameManager && typeof window.EJS_emulator.gameManager.setKeyboardEnabled === 'function') {
+          window.EJS_emulator.gameManager.setKeyboardEnabled(true);
+        }
+      }, 1000);
+    });
+
+    // Load EmulatorJS engine
+    const script = document.createElement('script');
+    script.src = '/emulatorjs/loader.js';
+    script.onload = () => {
+      console.log('[PUAE] EmulatorJS loader initialized');
+    };
+    script.onerror = (e) => {
+      console.error('[PUAE] Failed to load EmulatorJS loader:', e);
+      if (statusEl) statusEl.textContent = 'Error loading PUAE core components.';
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

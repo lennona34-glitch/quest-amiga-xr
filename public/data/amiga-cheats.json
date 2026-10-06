@@ -1,0 +1,1657 @@
+[
+  {
+    "game": "Turrican II: The Final Fight",
+    "aliases": [
+      "turrican 2",
+      "turrican ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Load Music & Sound Test",
+        "description": "Type 'LOAD MUSIC' on the high-score screen."
+      },
+      {
+        "type": "Code",
+        "title": "Invincibility (99 Lives)",
+        "description": "Pause the game with 'P' and type '1448'."
+      },
+      {
+        "type": "Code",
+        "title": "Level Skip",
+        "description": "Pause game and press key '1' through '5' on the numeric keypad to jump worlds."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x00F83C",
+        "value": "0x4A79",
+        "description": "NOP life subtraction in memory."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Energy / Invulnerability",
+        "address": "0x00E2AA",
+        "value": "0x4E71",
+        "description": "Bypasses health depletion."
+      }
+    ]
+  },
+  {
+    "game": "Turrican",
+    "aliases": [
+      "turrican",
+      "turrican 1"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility (God Mode)",
+        "description": "On the title screen, type 'BLUES BROTHERS'. Screen flashes pink on success."
+      },
+      {
+        "type": "Code",
+        "title": "All Weapons & Shields",
+        "description": "Hold Spacebar and press F1-F10 during gameplay."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x0113A2",
+        "value": "0x4A79"
+      }
+    ]
+  },
+  {
+    "game": "Postman Pat 3 - To the Rescue",
+    "aliases": [
+      "postman pat 3",
+      "postman pat iii",
+      "postman pat"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Time & Easy Parcels",
+        "description": "On the title screen press 'SPACE' for Easy Mode with extra delivery time and slower obstacles."
+      },
+      {
+        "type": "Code",
+        "title": "Switch Audio Modes",
+        "description": "Press 'F1' to toggle between background music and authentic sound effects."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Freeze Clock / Unlimited Time",
+        "address": "0x028A10",
+        "value": "0x4E71",
+        "description": "Stops van countdown timer."
+      }
+    ]
+  },
+  {
+    "game": "Alien Breed",
+    "aliases": [
+      "alien breed",
+      "alien breed special edition",
+      "alien breed 92"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Ammo & Intex Terminal Access",
+        "description": "At the Intex computer console, type 'I NEED SOME WEAPONS' or 'JUST ABOUT OUT OF IT'."
+      },
+      {
+        "type": "Code",
+        "title": "Free Intex Terminal Shopping",
+        "description": "Type 'BROADSWORD' at the terminal for $65,535 credits and maximum keys."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Ammo (POKE)",
+        "address": "0x0182E4",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x01A310",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Alien Breed II: The Horror Continues",
+    "aliases": [
+      "alien breed 2",
+      "alien breed ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Maximum Credits & All Weapons",
+        "description": "At the Intex terminal, enter 'EL DIABLO' or 'THE TERMINAL ILLNESS'."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives / Health",
+        "address": "0x02C450",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Speedball 2: Brutal Deluxe",
+    "aliases": [
+      "speedball 2",
+      "speedball ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Instant 1000 Cash Injection",
+        "description": "During manager mode, click the team logo 10 times then type 'GOLDEN'."
+      },
+      {
+        "type": "Code",
+        "title": "Super Human Team Stats",
+        "description": "Rename player 1 to 'ICE CREAM' for maxed stats in power, throw, and aggression."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Freeze Match Clock",
+        "address": "0x014520",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Sensible World of Soccer (SWOS)",
+    "aliases": [
+      "swos",
+      "sensible soccer",
+      "sensible world of soccer 96-97"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlimited Transfer Funds ($999M)",
+        "description": "In career mode manager screen, enter coach name 'SWOS MONEY' or hire player 99 and cancel."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Transfer Budget (POKE)",
+        "address": "0x04B280",
+        "value": "0x7FFF"
+      }
+    ]
+  },
+  {
+    "game": "Shadow of the Beast",
+    "aliases": [
+      "shadow of the beast",
+      "sotb"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility (Unlimited Health)",
+        "description": "Hold down Left Mouse Button while booting and keep held until the intro tree scrolls."
+      },
+      {
+        "type": "Code",
+        "title": "Ten Extra Lives",
+        "description": "Type 'TEN LIVES PLEASE' during the title screen credits."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Energy (POKE)",
+        "address": "0x01B2E0",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Shadow of the Beast II",
+    "aliases": [
+      "shadow of the beast 2",
+      "shadow of the beast ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invulnerability Mode",
+        "description": "Type 'TENACIOUS' on the title screen when the dragon flies across."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x028E44",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Superfrog",
+    "aliases": [
+      "superfrog"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "All World Passwords",
+        "description": "World 1: 0463 | World 2: 7392 | World 3: 4910 | World 4: 8329 | World 5: 1948 | World 6: 5201"
+      },
+      {
+        "type": "Code",
+        "title": "Invincibility & Infinite Wings",
+        "description": "On the world map or title screen type 'FROGGY'."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x031B50",
+        "value": "0x4A79"
+      }
+    ]
+  },
+  {
+    "game": "The Chaos Engine",
+    "aliases": [
+      "chaos engine",
+      "soldiers of fortune"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "World 2-4 Passwords",
+        "description": "Forest: JDFQ4 | Workshops: MRZ79 | Fort: WXPK2"
+      },
+      {
+        "type": "Code",
+        "title": "Invincible Characters",
+        "description": "Type 'BIG GUNS' in the character select screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x0256B0",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Money / Gold",
+        "address": "0x025810",
+        "value": "0x7FFF"
+      }
+    ]
+  },
+  {
+    "game": "Cannon Fodder",
+    "aliases": [
+      "cannon fodder",
+      "cannon fodder 2"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invulnerable Squad",
+        "description": "At the Save/Load screen, type 'JOPS' or 'NOT DEAD YET'."
+      },
+      {
+        "type": "Code",
+        "title": "Unlimited Grenades & Bazookas",
+        "description": "Hold 'C' + 'F' during mission briefing."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Grenades (POKE)",
+        "address": "0x01E830",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Recruits (POKE)",
+        "address": "0x01E940",
+        "value": "0x00FF"
+      }
+    ]
+  },
+  {
+    "game": "Giana Sisters, The Great",
+    "aliases": [
+      "great giana sisters",
+      "giana sisters"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Lives",
+        "description": "On the title screen, hold Left Mouse Button and type 'ARMIN'."
+      },
+      {
+        "type": "Code",
+        "title": "Level Warp",
+        "description": "Press F1-F10 during gameplay to jump directly to any level."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x013054",
+        "value": "0x4A79"
+      }
+    ]
+  },
+  {
+    "game": "Rick Dangerous",
+    "aliases": [
+      "rick dangerous",
+      "rick dangerous 1"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Lives & Dynamite",
+        "description": "Type 'POOKY' on the high-score table."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x015420",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Bullets (POKE)",
+        "address": "0x015480",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Rick Dangerous 2",
+    "aliases": [
+      "rick dangerous 2",
+      "rick dangerous ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Lives & Laser",
+        "description": "Type 'GANDALF' on the title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x017840",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Lemmings",
+    "aliases": [
+      "lemmings",
+      "lemmings 1"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Level Passwords (Mayhem)",
+        "description": "Mayhem 1: IJJLDLCCCR | Mayhem 10: OJJLEKNCES | Mayhem 20: CEKLDLICES"
+      },
+      {
+        "type": "Code",
+        "title": "All 99 Skills",
+        "description": "Pause game, hold F1 through F8 and press 'C'."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Time (POKE)",
+        "address": "0x021020",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Flashback",
+    "aliases": [
+      "flashback",
+      "flashback: the quest for identity"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Level Passwords",
+        "description": "Level 2 (New Washington): KAKATO | Level 3 (Death Tower): GENE | Level 4 (Earth): TOAD | Level 5 (Paradise): CYCLOP"
+      },
+      {
+        "type": "Code",
+        "title": "Infinite Energy Shield",
+        "description": "Recharge shield and hold Down + Fire at the recharge terminal."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Shield (POKE)",
+        "address": "0x027A10",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Lotus Esprit Turbo Challenge",
+    "aliases": [
+      "lotus esprit",
+      "lotus 1",
+      "lotus turbo challenge"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Championship Passwords",
+        "description": "Track 4: TURBO | Track 8: MONACO | Track 16: LOTUS"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Fuel (POKE)",
+        "address": "0x019A40",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Lotus III: The Ultimate Challenge",
+    "aliases": [
+      "lotus 3",
+      "lotus iii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlock All RECS Tracks",
+        "description": "Enter track code 'THE CROWD' or 'SEVENTEEN' for special course generation."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Freeze Time (POKE)",
+        "address": "0x022530",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Project-X",
+    "aliases": [
+      "project x",
+      "project-x"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility (God Mode)",
+        "description": "Type 'TEAM 17 RULES' during the opening title sequence."
+      },
+      {
+        "type": "Code",
+        "title": "All Weapons Full Power",
+        "description": "Hold 'HELP' and press 1-7 on the numeric keypad."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Ships (POKE)",
+        "address": "0x029F10",
+        "value": "0x4A79"
+      }
+    ]
+  },
+  {
+    "game": "Gods",
+    "aliases": [
+      "gods",
+      "bitmap brothers gods"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility & Level Select",
+        "description": "Type 'BAG OF TRICKS' on the title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x017290",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Energy (POKE)",
+        "address": "0x0173A0",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Xenon 2: Megablast",
+    "aliases": [
+      "xenon 2",
+      "xenon ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Mega Cash ($65,535)",
+        "description": "At Colin's Bargain Basement shop, type 'BETTY' or 'I WANT CASH'."
+      },
+      {
+        "type": "Code",
+        "title": "Invulnerability",
+        "description": "On title screen type 'MEGABLAST'."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Shields (POKE)",
+        "address": "0x01B420",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Golden Axe",
+    "aliases": [
+      "golden axe"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Magic & Potions",
+        "description": "Type 'ABRACADABRA' on the character selection screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x01F340",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Magic (POKE)",
+        "address": "0x01F410",
+        "value": "0x0006"
+      }
+    ]
+  },
+  {
+    "game": "Moonstone: A Hard Days Knight",
+    "aliases": [
+      "moonstone"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Gold & Best Sword",
+        "description": "Type 'VALIANT' in the town tavern tavern."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x032150",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Pinball Dreams",
+    "aliases": [
+      "pinball dreams"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlimited Balls",
+        "description": "Press 'F9' then type 'BALLS' on the table selection menu."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Balls (POKE)",
+        "address": "0x018720",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Pinball Fantasies",
+    "aliases": [
+      "pinball fantasies"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Extra Ball Every Drain",
+        "description": "Type 'FAIRLIGHT' on Party Land or Speed Devils."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Balls (POKE)",
+        "address": "0x019A10",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Zool: Ninja of the Nth Dimension",
+    "aliases": [
+      "zool",
+      "zool 1"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility & Level Warp",
+        "description": "Type 'CHUPACHUPS' on the title screen for the secret cheat menu."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x02D540",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Worms",
+    "aliases": [
+      "worms",
+      "worms the directors cut"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Banana Bombs & Secret Weapons",
+        "description": "At the weapon screen, press 'B', 'A', 'N', 'A', 'N', 'A'."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Turn Time (POKE)",
+        "address": "0x035610",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Syndicate",
+    "aliases": [
+      "syndicate",
+      "syndicate: american revolt"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlimited Credits ($100,000,000)",
+        "description": "Name your syndicate company 'COOPER TEAM' or 'TO SERVE AND PROTECT'."
+      },
+      {
+        "type": "Code",
+        "title": "All Weapons & Cybernetic Upgrades",
+        "description": "Name your team 'NUK THEM' for full weapons inventory."
+      }
+    ]
+  },
+  {
+    "game": "Another World",
+    "aliases": [
+      "another world",
+      "out of this world"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "All Chapter Codes",
+        "description": "Ch 1: EDDY | Ch 2: HHTD | Ch 3: TFBB | Ch 4: TXHF | Ch 5: CKAC | Ch 6: FLLD | Ch 7: XTRK | Ch 8: HBBC | End: KRFK"
+      }
+    ]
+  },
+  {
+    "game": "James Pond 2: Codename RoboCod",
+    "aliases": [
+      "james pond 2",
+      "robocod"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility (God Mode)",
+        "description": "Collect the items in the castle roof in order: Cake, Hammer, Earth, Apple, Tap to spell C-H-E-A-T."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x01C200",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Lionheart",
+    "aliases": [
+      "lionheart"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Full Energy & Extra Lives",
+        "description": "Type 'THALION' during the title sequence."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Energy (POKE)",
+        "address": "0x038100",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Ruff 'n' Tumble",
+    "aliases": [
+      "ruff n tumble",
+      "ruff and tumble"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility & Weapon Power",
+        "description": "Type 'RUFF STUFF' on the main title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x02F400",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Secret of Monkey Island, The",
+    "aliases": [
+      "monkey island",
+      "secret of monkey island"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Instant Win / Ending Screen",
+        "description": "Press 'Ctrl' + 'W' at any point in the game to jump straight to the credits."
+      }
+    ]
+  },
+  {
+    "game": "Monkey Island 2: LeChuck's Revenge",
+    "aliases": [
+      "monkey island 2",
+      "lechucks revenge"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Instant Win Ending",
+        "description": "Press 'Ctrl' + 'W' to instantly complete the quest."
+      }
+    ]
+  },
+  {
+    "game": "Wings",
+    "aliases": [
+      "wings",
+      "wings cinemaware"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility & Mission Skip",
+        "description": "Type \"GIVE ME WINGS\" on the officer club diary screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Plane Armour (POKE)",
+        "address": "0x021F80",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Freeze Bomb Timer (POKE)",
+        "address": "0x022410",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "It Came From The Desert",
+    "aliases": [
+      "it came from the desert",
+      "desert"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Hospital Escape & Easy Evidence",
+        "description": "Click the calendar 5 times and press F10 for quick hospital discharge."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Ant Health/Energy (POKE)",
+        "address": "0x023400",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Defender of the Crown",
+    "aliases": [
+      "defender of the crown",
+      "dotc"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlimited Gold Treasury",
+        "description": "During the raid sequence, hold Left + Right Mouse Buttons simultaneously."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Army Gold (POKE)",
+        "address": "0x018500",
+        "value": "0x7FFF"
+      }
+    ]
+  },
+  {
+    "game": "Frontier: Elite II",
+    "aliases": [
+      "frontier",
+      "elite 2",
+      "frontier elite ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlimited Credits via BBS Bug",
+        "description": "Accept a delivery contract, sell cargo at bulletin board, and pay fine for multi-million credit loop."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Shield Strength (POKE)",
+        "address": "0x03E420",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Hyperdrive Fuel (POKE)",
+        "address": "0x03E550",
+        "value": "0x00FF"
+      }
+    ]
+  },
+  {
+    "game": "Stunt Car Racer",
+    "aliases": [
+      "stunt car racer",
+      "stunt car"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Super Boost Engine",
+        "description": "Hold S + U on the track selection screen for unlimited turbo boost."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Turbo Boost (POKE)",
+        "address": "0x0182C0",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Zero Car Damage (POKE)",
+        "address": "0x0183F0",
+        "value": "0x4239"
+      }
+    ]
+  },
+  {
+    "game": "Super Cars II",
+    "aliases": [
+      "super cars 2",
+      "super cars ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Armor & Full Weapons",
+        "description": "In the interview quiz, select option 4 on question 1 and option 2 on question 2."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Missiles (POKE)",
+        "address": "0x01A240",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Mines (POKE)",
+        "address": "0x01A290",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Lotus 2: Lotus Turbo Challenge 2",
+    "aliases": [
+      "lotus 2",
+      "lotus turbo challenge 2"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Secret Pod Mini-Game",
+        "description": "Enter password \"DUEL\" on the password screen to play the hidden shooter mini-game."
+      },
+      {
+        "type": "Code",
+        "title": "Storm Course Passwords",
+        "description": "Level 2: FOREST | Level 3: NIGHT | Level 4: FOG | Level 5: SNOW | Level 6: DESERT | Level 7: MOTORWAY"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Time (POKE)",
+        "address": "0x01C420",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Micro Machines",
+    "aliases": [
+      "micro machines"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Select Any Track",
+        "description": "Type \"RED SQUIRREL\" on the character selection screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x028A10",
+        "value": "0x4A79"
+      }
+    ]
+  },
+  {
+    "game": "Chuck Rock",
+    "aliases": [
+      "chuck rock",
+      "chuck rock 1"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility",
+        "description": "Type \"COWABUNGA\" on the title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x019440",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Chuck Rock II: Son of Chuck",
+    "aliases": [
+      "chuck rock 2",
+      "son of chuck"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Level Select & Invulnerability",
+        "description": "Pause game, hold Up + Fire and press C-H-U-C-K."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x02A100",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Hired Guns",
+    "aliases": [
+      "hired guns",
+      "psygnosis hired guns"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "God Mode & All Gear",
+        "description": "Name character \"ROBO-COP\" or enter campaign code \"OBLIVION\"."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Ammo (POKE)",
+        "address": "0x031040",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Shields (POKE)",
+        "address": "0x031200",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Rainbow Islands",
+    "aliases": [
+      "rainbow islands",
+      "bubble bobble 2"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Fast Shoes & Double Rainbows",
+        "description": "At the high-score screen, type \"BIG FOOT\" or \"RAINBOW\"."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x0178E0",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Permanent Fast Rainbows (POKE)",
+        "address": "0x0179A0",
+        "value": "0x0001"
+      }
+    ]
+  },
+  {
+    "game": "Bubble Bobble",
+    "aliases": [
+      "bubble bobble"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Power-Up Start (Fast Shoes + Yellow Candy)",
+        "description": "On title screen, press Left, Jump, Left, Fire, Left, Jump, Left, Fire."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x012430",
+        "value": "0x4A79"
+      }
+    ]
+  },
+  {
+    "game": "Parasol Stars",
+    "aliases": [
+      "parasol stars",
+      "rainbow islands 2"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Level Warp",
+        "description": "Type \"OCEAN\" on the title screen then press 1-8 to skip worlds."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x01C200",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Toki",
+    "aliases": [
+      "toki",
+      "ju ju densetsu"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility",
+        "description": "Hold Fire + Up on the title screen until the intro chime rings."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x01D340",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Time (POKE)",
+        "address": "0x01D410",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Silkworm",
+    "aliases": [
+      "silkworm"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Shields & Mega Blast",
+        "description": "Type \"THE WILD BUNCH\" on the vehicle selection screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives Helicopter (POKE)",
+        "address": "0x013E20",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives Jeep (POKE)",
+        "address": "0x013E80",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "SWIV",
+    "aliases": [
+      "swiv",
+      "silkworm 4"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "All Weapons Maxed & Invincibility",
+        "description": "Type \"STORM TROOPER\" on the high-score screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x016420",
+        "value": "0x4A79"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Shields (POKE)",
+        "address": "0x0164E0",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "First Samurai, The",
+    "aliases": [
+      "first samurai",
+      "the first samurai"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invulnerability & Level Warp",
+        "description": "Type \"VIVID IMAGE\" on the title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Energy (POKE)",
+        "address": "0x021B10",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Magic Pots (POKE)",
+        "address": "0x021BA0",
+        "value": "0x0063"
+      }
+    ]
+  },
+  {
+    "game": "Second Samurai, The",
+    "aliases": [
+      "second samurai",
+      "the second samurai"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Cheat Mode & Level Select",
+        "description": "Type \"NINJA WARRIOR\" on the main menu."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x025640",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Rod-Land",
+    "aliases": [
+      "rod land",
+      "rod-land"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Story / Extra Game Select",
+        "description": "Hold Up + Fire 1 while pressing Space on the intro screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x019E20",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "North & South",
+    "aliases": [
+      "north and south",
+      "north & south infogrames"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Fort Capture Shortcut",
+        "description": "During fort fight, double-click the flag to instantly conquer."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Gold / Coffers (POKE)",
+        "address": "0x015A00",
+        "value": "0x7FFF"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Cavalry Soldiers (POKE)",
+        "address": "0x015B20",
+        "value": "0x00FF"
+      }
+    ]
+  },
+  {
+    "game": "Midnight Resistance",
+    "aliases": [
+      "midnight resistance"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Keys for Gun Shop",
+        "description": "Type \"LOCKSMITH\" during the weapon shop sequence."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x01E420",
+        "value": "0x4A79"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Keys (POKE)",
+        "address": "0x01E500",
+        "value": "0x0009"
+      }
+    ]
+  },
+  {
+    "game": "Apidya",
+    "aliases": [
+      "apidya"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility Mode",
+        "description": "Type \"KAIKO WAS HERE\" on the title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x0298A0",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Max Weapon Beam Power (POKE)",
+        "address": "0x029940",
+        "value": "0x0005"
+      }
+    ]
+  },
+  {
+    "game": "Battle Squadron",
+    "aliases": [
+      "battle squadron"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility & 99 Smart Bombs",
+        "description": "Type \"COPE BRØD\" on the options screen or press F1-F4 for instant upgrades."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x0182E0",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Smart Bombs (POKE)",
+        "address": "0x018350",
+        "value": "0x0063"
+      }
+    ]
+  },
+  {
+    "game": "Hybris",
+    "aliases": [
+      "hybris"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Infinite Ships",
+        "description": "Hold H + Y + B during title scroll."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x0161A0",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Disposable Hero",
+    "aliases": [
+      "disposable hero"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invincibility & All Blueprints",
+        "description": "Type \"MARIUS\" at the weapon hangar."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Shield Energy (POKE)",
+        "address": "0x02E140",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Walker",
+    "aliases": [
+      "walker",
+      "dma design walker"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "No Gun Overheat & God Mode",
+        "description": "Type \"BULLET PROOF\" on the pilot briefing screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "No Gun Overheating (POKE)",
+        "address": "0x031B00",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Walker Armour (POKE)",
+        "address": "0x031C50",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Body Blows",
+    "aliases": [
+      "body blows",
+      "body blows galactic"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Play as Boss T-17",
+        "description": "Highlight Dan on character select and hold 1 + 7 on keypad."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite P1 Health (POKE)",
+        "address": "0x021420",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Super Stardust",
+    "aliases": [
+      "super stardust",
+      "stardust aga"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Invulnerability Shield",
+        "description": "Type \"ELBERETH\" on the hi-score table."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Ships (POKE)",
+        "address": "0x03D200",
+        "value": "0x4E71"
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Bombs (POKE)",
+        "address": "0x03D280",
+        "value": "0x0009"
+      }
+    ]
+  },
+  {
+    "game": "Super Skidmarks",
+    "aliases": [
+      "super skidmarks",
+      "skidmarks 2"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Drive Bovine Cow & Caravans",
+        "description": "Enter player name \"MOO CAR\" or \"PULL ME\" to race caravans and cows."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Always First Place (POKE)",
+        "address": "0x02C450",
+        "value": "0x0001"
+      }
+    ]
+  },
+  {
+    "game": "Magic Pockets",
+    "aliases": [
+      "magic pockets",
+      "bitmap brothers magic pockets"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Level Select & Invincibility",
+        "description": "Type \"POCKET POWER\" on the title screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Lives (POKE)",
+        "address": "0x01B200",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "IK+ (International Karate +)",
+    "aliases": [
+      "ik+",
+      "ik plus",
+      "international karate +",
+      "international karate plus"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Drop Opponent Trousers",
+        "description": "Press \"T\" during a fight to make all fighters drop their trousers!"
+      },
+      {
+        "type": "Code",
+        "title": "Backflip Shield",
+        "description": "Press Space to deflect throwing shields in the bonus stage."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Always Pass Round (POKE)",
+        "address": "0x012F40",
+        "value": "0x0006"
+      }
+    ]
+  },
+  {
+    "game": "Beneath a Steel Sky",
+    "aliases": [
+      "beneath a steel sky",
+      "bass"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Instant Debug Dialogue & Teleport",
+        "description": "Hold Left Shift + F10 to trigger revolution debug menu."
+      }
+    ]
+  },
+  {
+    "game": "Dune II: The Battle for Arrakis",
+    "aliases": [
+      "dune 2",
+      "dune ii"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Unlimited Spice / Credits",
+        "description": "Click your radar dish and type \"CASHFLOW\"."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Spice Credits (POKE)",
+        "address": "0x02E800",
+        "value": "0x7FFF"
+      }
+    ]
+  },
+  {
+    "game": "Populous",
+    "aliases": [
+      "populous",
+      "populous 1"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "God Power Mana 9999",
+        "description": "Type \"GENESIS\" or \"LET THERE BE LIGHT\" on the conquest map."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Maximum Mana / Divine Power (POKE)",
+        "address": "0x019480",
+        "value": "0x270F"
+      }
+    ]
+  },
+  {
+    "game": "The Settlers (Serf City)",
+    "aliases": [
+      "settlers",
+      "the settlers",
+      "serf city"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Full Resource Stockpiles",
+        "description": "Hold Alt and type \"WINTER\" in the castle warehouse screen."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Gold Bars in Store (POKE)",
+        "address": "0x038A00",
+        "value": "0x00FF"
+      }
+    ]
+  },
+  {
+    "game": "Alien Breed 3D",
+    "aliases": [
+      "alien breed 3d",
+      "ab3d"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "Full Arsenal & Keys",
+        "description": "Pause game, type \"T17\" or \"TEAM SEVENTEEN\" for all weapons and infinite ammo."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x041A20",
+        "value": "0x4E71"
+      }
+    ]
+  },
+  {
+    "game": "Gloom",
+    "aliases": [
+      "gloom",
+      "gloom deluxe"
+    ],
+    "cheats": [
+      {
+        "type": "Code",
+        "title": "God Mode & All Weapons",
+        "description": "Type \"I AM GOD\" or \"ALL THE GUNS\" during gameplay."
+      },
+      {
+        "type": "Action Replay",
+        "title": "Infinite Health (POKE)",
+        "address": "0x03F210",
+        "value": "0x4E71"
+      }
+    ]
+  }
+]

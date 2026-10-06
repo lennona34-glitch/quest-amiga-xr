@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+
+# Production build outputs
+dist/
+
+# TOSEC index cache (110MB - exceeds GitHub 100MB limit)
+.tosec_index_cache.json
+
+# Extracted caches and temporary directories
+.extracted_cache/
+public/disks/.extracted_cache/
+scratch/
+scratch_cf/
+.claude/
+chrome_profile*/
+
+# Temporary test & debug scripts
+check_*.mjs
+test_*.mjs
+debug_*.mjs
+inspect_*.mjs
+capture_*.mjs
+scratch_*.py
+scratch_*.cjs
+test_*.cjs
+find_cd32.py
+scripts/test_*.js
+scripts/trace_*.js
+scripts/inspect_*.js
+scripts/capture_*.js
+scripts/debug_*.js
+scripts/analyze_*.js
+scripts/find_*.js
+scripts/*.png
+
+# Large test archives and CD images
+public/disks/test_cannon.zip
+*.iso
+*.cue
+*.chd
+*.nrg
+
+# Copyrighted Commodore Kickstart ROMs (place in public/roms/ locally)
+public/roms/amiga_bios.zip
+public/roms/cd32_ext.rom
+public/roms/kick*.rom
+public/roms/kick34005.A500
+public/roms/kick37175.A500
+public/roms/kick40060.CD32*
+public/roms/kick40068.A1200
+*.rom
+*.ROM
+
+# Allow open-source AROS binaries
+!public/roms/aros*.bin
+
+# Environment and OS files
+.env
+.env.local
+.DS_Store
+Thumbs.db
+desktop.ini
