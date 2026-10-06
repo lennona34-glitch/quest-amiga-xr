@@ -431,11 +431,13 @@
         puae_model: puaeModel,
         puae_model_cd: "CD32",
         puae_model_fd: isCd32 ? "A500" : (puaeModel === "A1200" ? "A1200" : "A500"),
-        puae_chipmem_size: (puaeModel === "A1200") ? "2" : "auto",
+        puae_chipmem_size: (puaeModel === "A1200") ? "4" : "auto",
         puae_fastmem_size: (puaeModel === "A1200") ? "8" : "0",
-        puae_kickstart: isCd32 ? "auto" : (puaeModel === "A1200" ? "kick40068.A1200" : "kick34005.A500"),
+        puae_z3mem_size: (puaeModel === "A1200") ? "64" : "0",
+        puae_bogomem_size: "0",
+        puae_kickstart: "auto",
         puae_floppy_multidrive: isCd32 ? "disabled" : "enabled",
-        puae_floppy_speed: isCd32 ? "100" : "0",
+        puae_floppy_speed: "100",
         puae_autoloadfastforward: isCd32 ? "disabled" : "fd",
         puae_joyport: "joystick",
         puae_joyport_order: "1234",
@@ -577,6 +579,23 @@
         window.EJS_emulator.on('start', () => {
           console.log('[PUAE] EmulatorJS start event triggered');
           dismissOverlay();
+          setTimeout(() => {
+            try {
+              const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+              if (gm && typeof gm.getDiskCount === 'function') {
+                const count = gm.getDiskCount();
+                const current = typeof gm.getCurrentDisk === 'function' ? gm.getCurrentDisk() : 0;
+                if (count > 1) {
+                  window.parent.postMessage({
+                    type: 'guardian_disks_info',
+                    diskCount: count,
+                    currentDisk: current
+                  }, '*');
+                  console.log(`[PUAE] Multi-disk detected: ${count} disks loaded (active: ${current + 1})`);
+                }
+              }
+            } catch(e) {}
+          }, 1000);
         });
       }
     };
@@ -813,6 +832,23 @@
             return;
           }
 
+          // Live disk swap without reloading when emulating
+          if (data.boot === false && window.EJS_emulator && window.EJS_emulator.gameManager) {
+            const gm = window.EJS_emulator.gameManager;
+            if (typeof gm.setCurrentDisk === 'function' && data.diskNum) {
+              try {
+                gm.setCurrentDisk(data.diskNum - 1);
+                console.log(`[PUAE] Live disk swapped to Disk ${data.diskNum} without reload`);
+                window.parent.postMessage({
+                  type: 'guardian_disks_info',
+                  diskCount: gm.getDiskCount ? gm.getDiskCount() : 1,
+                  currentDisk: data.diskNum - 1
+                }, '*');
+                return;
+              } catch(e) {}
+            }
+          }
+
           let targetUrl = data.gameUrl;
           if (!targetUrl && data.file) {
             const blob = new Blob([data.file]);
@@ -833,6 +869,22 @@
           }
         } catch (e) {
           console.error('[PUAE] Error handling live load:', e);
+        }
+      } else if (data.cmd === 'change_disk') {
+        const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+        if (gm && typeof gm.setCurrentDisk === 'function') {
+          try {
+            const idx = (data.index !== undefined) ? data.index : 0;
+            gm.setCurrentDisk(idx);
+            console.log(`[PUAE] Disc Control: Swapped to disk index ${idx}`);
+            window.parent.postMessage({
+              type: 'guardian_disks_info',
+              diskCount: gm.getDiskCount ? gm.getDiskCount() : 1,
+              currentDisk: idx
+            }, '*');
+          } catch(e) {
+            console.warn('[PUAE] Disk change error:', e);
+          }
         }
       } else if (data.cmd === 'remote_key') {
         const evType = data.subType || 'keydown';

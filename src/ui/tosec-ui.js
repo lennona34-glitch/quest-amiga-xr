@@ -16,6 +16,7 @@ export class TosecUI {
     this.onApplyPoke = options.onApplyPoke;
     this.onApplyMultiPoke = options.onApplyMultiPoke;
     this.onOpenSettings = options.onOpenSettings;
+    this.onChangeDisk = options.onChangeDisk;
 
     this.mouseLocked = false;
     this.isZen = false;
@@ -87,6 +88,7 @@ export class TosecUI {
           <button class="zen-pill-btn" id="zen_btn_scene" title="Community Scene Vault (Shortcut: V)">🏛️ Scene (V)</button>
           <button class="zen-pill-btn" id="zen_btn_cheats" title="Cheats & POKEs (Shortcut: C)">⚡ Cheats (C)</button>
           <button class="zen-pill-btn" id="zen_btn_random" title="Random Game (Shortcut: R)">🎲 Random (R)</button>
+          <div id="zen_multidisk_bar" class="hud-multidisk-bar" style="display:none;"></div>
           <button class="zen-pill-btn" id="zen_btn_mouse" title="Capture / Release Mouse (Shortcut: M • Esc or Middle-Click to free)">🖱️ Mouse: OFF</button>
           <button class="zen-pill-btn" id="zen_btn_reset" title="Hardware Reset (Ctrl+Amiga)">⚡ Reset</button>
           <button class="zen-pill-btn" id="zen_btn_splash" title="Toggle Splash Mode">🛡️ Splash</button>
@@ -116,6 +118,8 @@ export class TosecUI {
               </select>
             </div>
             <button id="engine_chip" class="engine-badge" title="Click to Cycle Emulation Core: vAmiga, C64, Plus/4, PUAE">⚡ vAmiga</button>
+            <button id="btn_main_random" class="hud-btn btn-random" title="Pick a Random Game (Disk 1) - Keyboard Shortcut: R"><span class="btn-icon">🎲</span> <span class="btn-text">Random</span></button>
+            <div id="hud_multidisk_bar" class="hud-multidisk-bar" style="display:none;"></div>
           </div>
 
           <div class="header-mid">
@@ -635,11 +639,15 @@ export class TosecUI {
 
     // Random Game and Insta-Load buttons
     const randomBtn = el.querySelector('#btn_random_game');
+    const mainRandomBtn = el.querySelector('#btn_main_random');
     const zenRandomBtn = el.querySelector('#zen_btn_random');
     const instaLoadChk = el.querySelector('#chk_insta_load');
 
     if (randomBtn) {
       randomBtn.addEventListener('click', () => this.triggerRandomGame());
+    }
+    if (mainRandomBtn) {
+      mainRandomBtn.addEventListener('click', () => this.triggerRandomGame());
     }
     if (zenRandomBtn) {
       zenRandomBtn.addEventListener('click', () => this.triggerRandomGame());
@@ -1774,8 +1782,10 @@ export class TosecUI {
 
   async triggerRandomGame() {
     const randomBtn = document.getElementById('btn_random_game');
+    const mainRandomBtn = document.getElementById('btn_main_random');
     const zenRandomBtn = document.getElementById('zen_btn_random');
     if (randomBtn) randomBtn.textContent = '🎲 Rolling...';
+    if (mainRandomBtn) mainRandomBtn.innerHTML = '<span class="btn-icon">🎲</span> <span class="btn-text">Rolling...</span>';
     if (zenRandomBtn) zenRandomBtn.textContent = '🎲 Rolling...';
 
     try {
@@ -1808,8 +1818,39 @@ export class TosecUI {
       this.showToast(`❌ Error selecting random game: ${err.message}`);
     } finally {
       if (randomBtn) randomBtn.textContent = '🎲 Random';
+      if (mainRandomBtn) mainRandomBtn.innerHTML = '<span class="btn-icon">🎲</span> <span class="btn-text">Random</span>';
       if (zenRandomBtn) zenRandomBtn.textContent = '🎲 Random Game (R)';
     }
+  }
+
+  updateMultiDiskControls(count, currentIndex = 0) {
+    const bars = [document.getElementById('hud_multidisk_bar'), document.getElementById('zen_multidisk_bar')];
+    bars.forEach(bar => {
+      if (!bar) return;
+      if (!count || count <= 1) {
+        bar.style.display = 'none';
+        bar.innerHTML = '';
+        return;
+      }
+      bar.style.display = 'inline-flex';
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const isActive = (i === currentIndex);
+        html += `<button class="multidisk-btn ${isActive ? 'active' : ''}" data-disk-idx="${i}" title="Insert Disk ${i + 1}">💾 D${i + 1}</button>`;
+      }
+      bar.innerHTML = html;
+      bar.querySelectorAll('.multidisk-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.diskIdx, 10);
+          if (this.onChangeDisk) {
+            this.onChangeDisk(idx);
+          }
+          this.playSound('insert');
+          this.showToast(`💾 <strong>Disk Swapped:</strong> Active drive now running Disk ${idx + 1}`);
+        });
+      });
+    });
   }
 
   initGamepadDetection() {

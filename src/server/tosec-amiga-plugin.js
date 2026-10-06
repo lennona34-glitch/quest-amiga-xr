@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
+import crypto from 'crypto';
 import { spawnSync } from 'child_process';
 import { WebSocketServer } from 'ws';
 import { fetchCsdbReleases, getPlus4WorldReleases, getC128Releases, getDemosceneReleases, downloadSceneDisk } from './scene-vault-service.js';
@@ -570,6 +571,77 @@ export function tosecAmigaServerPlugin() {
     return null;
   }
 
+  function buildOrGetMultiDiskBundle(targetItem) {
+    if (!targetItem || !targetItem.fullPath) return null;
+    const core = (targetItem.name || '').replace(/\((?:Disk|Disc|Side|Tape)\s*[0-9A-Za-z]+\s*(?:of\s*\d+)?\)/i, '')
+                                        .replace(/\[[^\]]*\]/g, '')
+                                        .replace(/\s+/g, ' ')
+                                        .trim()
+                                        .toLowerCase();
+    const targetDir = path.dirname(targetItem.relPath || '').toLowerCase();
+
+    const matches = gameIndex.filter(g => {
+      if (!g || g.system !== targetItem.system) return false;
+      if (g.baseTitle && targetItem.baseTitle && g.baseTitle.toLowerCase() === targetItem.baseTitle.toLowerCase()) return true;
+      const gCore = (g.name || '').replace(/\((?:Disk|Disc|Side|Tape)\s*[0-9A-Za-z]+\s*(?:of\s*\d+)?\)/i, '')
+                                  .replace(/\[[^\]]*\]/g, '')
+                                  .replace(/\s+/g, ' ')
+                                  .trim()
+                                  .toLowerCase();
+      if (gCore === core) {
+        const gDir = path.dirname(g.relPath || '').toLowerCase();
+        return gDir === targetDir;
+      }
+      return false;
+    });
+
+    const diskMap = new Map();
+    for (const m of matches) {
+      if (!diskMap.has(m.diskNum)) {
+        diskMap.set(m.diskNum, m);
+      }
+    }
+    const companions = Array.from(diskMap.values()).sort((a, b) => a.diskNum - b.diskNum);
+    if (companions.length <= 1) return null;
+
+    const hash = crypto.createHash('md5').update(companions.map(d => d.file).join('|')).digest('hex').substring(0, 16);
+    const bundleDir = path.join(EXTRACT_CACHE_DIR, `bundle_${hash}`);
+    const bundleZip = path.join(EXTRACT_CACHE_DIR, `bundle_${hash}.zip`);
+
+    if (fs.existsSync(bundleZip)) {
+      return { path: bundleZip, count: companions.length, disks: companions };
+    }
+
+    try {
+      fs.mkdirSync(bundleDir, { recursive: true });
+      const m3uEntries = [];
+      for (const d of companions) {
+        const extEntry = extractOrGetCachedEntry(d.fullPath, '.adf');
+        if (extEntry && fs.existsSync(extEntry.path)) {
+          const diskFileName = `Disk${d.diskNum}.adf`;
+          const destPath = path.join(bundleDir, diskFileName);
+          if (!fs.existsSync(destPath)) {
+            fs.copyFileSync(extEntry.path, destPath);
+          }
+          m3uEntries.push(diskFileName);
+        }
+      }
+      if (m3uEntries.length > 0) {
+        const cleanBase = (targetItem.baseTitle || 'Game').replace(/["'\\/:*?<>|]/g, '_').trim();
+        const m3uName = `${cleanBase}.m3u`;
+        fs.writeFileSync(path.join(bundleDir, m3uName), m3uEntries.join('\n'));
+        const args = ['-a', '-cf', bundleZip, '-C', bundleDir, ...m3uEntries, m3uName];
+        spawnSync('tar.exe', args, { windowsHide: true });
+        if (fs.existsSync(bundleZip)) {
+          return { path: bundleZip, count: companions.length, disks: companions };
+        }
+      }
+    } catch (err) {
+      console.warn('[Commodore Guardian] Multi-disk bundle creation error:', err.message);
+    }
+    return null;
+  }
+
   return {
     name: 'tosec-amiga-server-plugin',
     configureServer(server) {
@@ -693,6 +765,35 @@ export function tosecAmigaServerPlugin() {
 
           res.setHeader('Content-Type', 'application/json');
           return res.end(JSON.stringify({ disks }));
+        }
+
+        // 3.1. Multi-disk ZIP Package with M3U playlist: /api/tosec/bundle?file=... or /api/tosec/bundle/:filename
+        if (url.pathname === '/api/tosec/bundle' || url.pathname.startsWith('/api/tosec/bundle/')) {
+          if (!indexBuilt) buildIndex();
+          const relFile = url.searchParams.get('file') || decodeURIComponent(url.pathname.replace('/api/tosec/bundle/', ''));
+          const safeRel = path.normalize(relFile || '').replace(/^(\.\.[\/\\])+/, '');
+          const normRel = safeRel.replace(/\\/g, '/').toLowerCase();
+          const baseRel = path.basename(safeRel).toLowerCase();
+
+          const target = gameIndex.find(g => {
+            const gRel = (g.relPath || '').replace(/\\/g, '/').toLowerCase();
+            const gFile = (g.file || '').toLowerCase();
+            return gRel === normRel || gFile === baseRel || gRel.endsWith('/' + baseRel);
+          });
+
+          if (target) {
+            const bundle = buildOrGetMultiDiskBundle(target);
+            if (bundle && fs.existsSync(bundle.path)) {
+              const stat = fs.statSync(bundle.path);
+              res.setHeader('Content-Type', 'application/zip');
+              res.setHeader('Content-Length', stat.size);
+              res.setHeader('X-Disk-Count', bundle.count.toString());
+              const stream = fs.createReadStream(bundle.path);
+              return stream.pipe(res);
+            }
+          }
+          // Fallback: If not multi-disk or failed bundling, redirect query to standard disk endpoint
+          req.url = '/api/tosec/get?file=' + encodeURIComponent(relFile);
         }
 
         // 3.5. Random game endpoint: /api/tosec/random (Disk 1 only!)

@@ -64,7 +64,8 @@ class AmigaXRApp {
         console.log('[Commodore Guardian] Splash mode switched to:', mode);
         this.switchKickstart(this.currentRom, false);
       },
-      onOpenSettings: () => this.openEmulatorSettings()
+      onOpenSettings: () => this.openEmulatorSettings(),
+      onChangeDisk: (diskIdx) => this.changeEmulatorDisk(diskIdx)
     });
     this.ui.render(appEl);
 
@@ -82,6 +83,11 @@ class AmigaXRApp {
       if (event.data && event.data.msg === 'gamepad_status') {
         if (this.ui) {
           this.ui.updateGamepadStatus({ id: event.data.id }, event.data.connected);
+        }
+      }
+      if (event.data && event.data.type === 'guardian_disks_info') {
+        if (this.ui && typeof this.ui.updateMultiDiskControls === 'function') {
+          this.ui.updateMultiDiskControls(event.data.diskCount, event.data.currentDisk);
         }
       }
     });
@@ -790,7 +796,13 @@ class AmigaXRApp {
     }
 
     const cleanTitle = (title || 'disk').replace(/["'\\/:,]/g, '_').trim();
-    const gameUrl = `/api/tosec/disk/${encodeURIComponent(cleanTitle)}.${diskExt}?file=${encodeURIComponent(relPath)}`;
+    let gameUrl = `/api/tosec/disk/${encodeURIComponent(cleanTitle)}.${diskExt}?file=${encodeURIComponent(relPath)}`;
+
+    const isMultiDisk = /\((?:Disk|Disc|Side)\s*([0-9A-Za-z]+)\s*(?:of\s*(\d+))?\)/i.test(title || relPath);
+    if (targetEngine === 'puae' && isBoot && isMultiDisk) {
+      gameUrl = `/api/tosec/bundle/${encodeURIComponent(cleanTitle)}.zip?file=${encodeURIComponent(relPath)}&title=${encodeURIComponent(cleanTitle)}`;
+      console.log(`[Commodore Guardian] Multi-disk detected for PUAE boot: bundling with M3U playlist -> ${gameUrl}`);
+    }
 
     // Auto-switch engine or hardware model if disk requires a different Commodore core or model, or reinitialize when booting a new game
     const explicitCore = isCd32 ? 'cd32' : (targetEngine === 'puae' ? 'amiga' : targetEngine);
@@ -807,6 +819,22 @@ class AmigaXRApp {
 
       this.setupEmulatorIframe(targetEngine, gameUrl, title, explicitCore, explicitModel);
 
+      // In vAmiga: automatically mount Disk 2 into DF1 for multi-disk games!
+      if (targetEngine === 'vamiga' && isMultiDisk && isBoot) {
+        fetch(`/api/tosec/multidisk?title=${encodeURIComponent(cleanTitle.replace(/\((?:Disk|Disc|Side)\s*[0-9A-Za-z]+\s*(?:of\s*\d+)?\)/i, '').trim())}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.disks && data.disks.length > 1) {
+              const d2 = data.disks.find(d => d.diskNum === 2);
+              if (d2) {
+                setTimeout(() => {
+                  this.loadDisk(1, d2.relPath, d2.name, false, 'vamiga');
+                }, 1200);
+              }
+            }
+          }).catch(() => {});
+      }
+
       if (broadcast) {
         this.relay.sendDiskInsert(unit, relPath, title);
       }
@@ -822,6 +850,8 @@ class AmigaXRApp {
     if (['c64', 'c128', 'plus4', 'vic20', 'puae'].includes(this.currentEngine)) {
       const nextCore = isCd32 ? 'cd32' : (this.currentEngine === 'puae' ? 'amiga' : this.currentEngine);
       const nextModel = isCd32 ? 'CD32' : (this.currentEngine === 'puae' ? 'A1200' : null);
+      const diskMatch = (title || '').match(/\((?:Disk|Disc|Side)\s*([0-9A-Za-z]+)\s*(?:of\s*(\d+))?\)/i);
+      const parsedDiskNum = diskMatch ? parseInt(diskMatch[1], 10) : (unit + 1);
       if (this.emuIframe && this.emuIframe.contentWindow) {
         this.emuIframe.contentWindow.postMessage({
           cmd: 'load',
@@ -830,6 +860,7 @@ class AmigaXRApp {
           gameUrl: gameUrl,
           file_name: title,
           drive: unit,
+          diskNum: parsedDiskNum,
           boot: false,
           reset: false
         }, '*');
@@ -1054,6 +1085,15 @@ class AmigaXRApp {
     }
     if (this.ui) {
       this.ui.setMouseLockState(false);
+    }
+  }
+
+  changeEmulatorDisk(diskIndex) {
+    if (this.emuIframe && this.emuIframe.contentWindow) {
+      this.emuIframe.contentWindow.postMessage({
+        cmd: 'change_disk',
+        index: diskIndex
+      }, '*');
     }
   }
 

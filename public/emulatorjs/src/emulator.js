@@ -906,6 +906,7 @@ class EmulatorJS {
     downloadRom() {
         const supportsExt = (ext) => {
             const core = this.getCore();
+            if (ext === 'm3u' && (core.includes('puae') || core === 'amiga')) return true;
             if (!this.extensions) return false;
             return this.extensions.includes(ext);
         };
@@ -1123,31 +1124,47 @@ class EmulatorJS {
                             }
                         }
                     });
-                    if (!disableCue && cueFile !== null && (supportsExt("cue") || supportsExt("ccd") || supportsExt("toc") || supportsExt("m3u") || cueFile.toLowerCase().endsWith(".cue"))) {
+                    if (!disableCue && cueFile !== null && (supportsExt("cue") || supportsExt("ccd") || supportsExt("toc") || supportsExt("m3u") || cueFile.toLowerCase().endsWith(".cue") || cueFile.toLowerCase().endsWith(".m3u"))) {
                         this.fileName = cueFile;
                         try {
                             const cueContent = this.gameManager.FS.readFile('/' + cueFile.replace(/^\/+/, ''), { encoding: 'utf8' });
-                            const fileMatches = Array.from(cueContent.matchAll(/FILE\s+["']?([^"'\r\n]+)["']?/gi));
-                            for (const fm of fileMatches) {
-                                const refName = fm[1].replace(/\\/g, '/').split('/').pop().trim();
-                                if (!this.gameManager.FS.analyzePath('/' + refName).exists) {
-                                    const found = fileNames.find(f => f.split('/').pop().toLowerCase() === refName.toLowerCase());
-                                    if (found) {
-                                        const bytes = this.gameManager.FS.readFile('/' + found.replace(/^\/+/, ''));
-                                        this.gameManager.FS.writeFile('/' + refName, bytes);
-                                        try { this.gameManager.FS.writeFile(refName, bytes); } catch(e) {}
-                                        console.log(`[CUE MIRROR] Mirrored ${found} to /${refName} for CD parser`);
-                                    } else {
-                                        const anyCd = fileNames.find(f => /\.(iso|bin|img|chd|nrg|mdf)$/i.test(f));
-                                        if (anyCd) {
-                                            const bytes = this.gameManager.FS.readFile('/' + anyCd.replace(/^\/+/, ''));
+                            if (cueFile.toLowerCase().endsWith('.m3u')) {
+                                const m3uLines = cueContent.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+                                for (const m3uLine of m3uLines) {
+                                    const refName = m3uLine.split('|')[0].replace(/\\/g, '/').split('/').pop().trim();
+                                    if (!this.gameManager.FS.analyzePath('/' + refName).exists) {
+                                        const found = fileNames.find(f => f.split('/').pop().toLowerCase() === refName.toLowerCase());
+                                        if (found) {
+                                            const bytes = this.gameManager.FS.readFile('/' + found.replace(/^\/+/, ''));
                                             this.gameManager.FS.writeFile('/' + refName, bytes);
                                             try { this.gameManager.FS.writeFile(refName, bytes); } catch(e) {}
-                                            console.log(`[CUE MIRROR FALLBACK] Mirrored ${anyCd} to /${refName} for CD parser`);
+                                            console.log(`[M3U MIRROR] Mirrored ${found} to /${refName} for PUAE multi-disk`);
+                                        }
+                                    }
+                                }
+                            } else {
+                                const fileMatches = Array.from(cueContent.matchAll(/FILE\s+["']?([^"'\r\n]+)["']?/gi));
+                                for (const fm of fileMatches) {
+                                    const refName = fm[1].replace(/\\/g, '/').split('/').pop().trim();
+                                    if (!this.gameManager.FS.analyzePath('/' + refName).exists) {
+                                        const found = fileNames.find(f => f.split('/').pop().toLowerCase() === refName.toLowerCase());
+                                        if (found) {
+                                            const bytes = this.gameManager.FS.readFile('/' + found.replace(/^\/+/, ''));
+                                            this.gameManager.FS.writeFile('/' + refName, bytes);
+                                            try { this.gameManager.FS.writeFile(refName, bytes); } catch(e) {}
+                                            console.log(`[CUE MIRROR] Mirrored ${found} to /${refName} for CD parser`);
                                         } else {
-                                            this.gameManager.FS.writeFile('/' + refName, new Uint8Array(2048 * 16));
-                                            try { this.gameManager.FS.writeFile(refName, new Uint8Array(2048 * 16)); } catch(e) {}
-                                            console.log(`[CUE PROVISION] Provisioned empty companion media /${refName} for ${cueFile}`);
+                                            const anyCd = fileNames.find(f => /\.(iso|bin|img|chd|nrg|mdf)$/i.test(f));
+                                            if (anyCd) {
+                                                const bytes = this.gameManager.FS.readFile('/' + anyCd.replace(/^\/+/, ''));
+                                                this.gameManager.FS.writeFile('/' + refName, bytes);
+                                                try { this.gameManager.FS.writeFile(refName, bytes); } catch(e) {}
+                                                console.log(`[CUE MIRROR FALLBACK] Mirrored ${anyCd} to /${refName} for CD parser`);
+                                            } else {
+                                                this.gameManager.FS.writeFile('/' + refName, new Uint8Array(2048 * 16));
+                                                try { this.gameManager.FS.writeFile(refName, new Uint8Array(2048 * 16)); } catch(e) {}
+                                                console.log(`[CUE PROVISION] Provisioned empty companion media /${refName} for ${cueFile}`);
+                                            }
                                         }
                                     }
                                 }
@@ -2468,14 +2485,9 @@ class EmulatorJS {
 
         this.addEventListener(this.canvas, "click", (e) => {
             if (e.pointerType === "touch") return;
-            if (this.enableMouseLock && !this.paused) {
-                if (this.canvas.requestPointerLock) {
-                    this.canvas.requestPointerLock();
-                } else if (this.canvas.mozRequestPointerLock) {
-                    this.canvas.mozRequestPointerLock();
-                }
-                this.menu.close();
-            }
+            // Manual pointer lock only: never automatically lock pointer on canvas click!
+            // Mouse capture is explicitly toggled by user via button or 'M' key.
+            this.menu.close();
         })
 
         const enter = addButton(this.config.buttonOpts.enterFullscreen, () => {

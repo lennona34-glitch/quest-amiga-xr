@@ -105,11 +105,44 @@ body, html {
   font-weight: 600;
   outline: none;
   cursor: pointer;
-  max-width: 175px;
-  min-width: 130px;
-  text-overflow: ellipsis;
+  max-width: 320px;
+  min-width: 140px;
   white-space: nowrap;
   transition: all 0.2s ease;
+}
+
+.hud-multidisk-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.multidisk-btn {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.multidisk-btn:hover {
+  background: #334155;
+  color: #f8fafc;
+  border-color: #38bdf8;
+}
+
+.multidisk-btn.active {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
 }
 
 .hud-select:focus,
@@ -372,7 +405,7 @@ body, html {
     display: none;
   }
   .hud-select {
-    max-width: 150px;
+    max-width: 260px;
   }
   .gamepad-chip {
     max-width: 110px;
