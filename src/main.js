@@ -454,25 +454,29 @@ class AmigaXRApp {
             const left = stickLeft || dpadLeft || altHatLeft;
             const right = stickRight || dpadRight || altHatRight;
 
-            // Map Fire 1 (Button A / X / Triggers / Bumpers) & Fire 2 (Button B / Y / Shoulders) & Play/Start (Button 9 / 8)
-            const fire = !!((buttons[0] && buttons[0].pressed) || (buttons[2] && buttons[2].pressed) || (buttons[5] && buttons[5].pressed) || (buttons[7] && buttons[7].pressed));
-            const fire2 = !!((buttons[1] && buttons[1].pressed) || (buttons[3] && buttons[3].pressed) || (buttons[4] && buttons[4].pressed) || (buttons[6] && buttons[6].pressed));
+            // Dedicated mappings: A/RT = Red (Shoot), B/LT = Blue (Retreat Mode / Jump), X = Green, Y = Yellow (Weapons), LB/RB = Shoulders, Start = Play
+            const fire = !!((buttons[0] && buttons[0].pressed) || (buttons[7] && buttons[7].pressed));
+            const fire2 = !!((buttons[1] && buttons[1].pressed) || (buttons[6] && buttons[6].pressed));
+            const green = !!(buttons[2] && buttons[2].pressed);
+            const yellow = !!(buttons[3] && buttons[3].pressed);
+            const lShoulder = !!(buttons[4] && buttons[4].pressed);
+            const rShoulder = !!(buttons[5] && buttons[5].pressed);
             const play = !!((buttons[9] && buttons[9].pressed) || (buttons[8] && buttons[8].pressed));
 
-            const isNonNeutral = up || down || left || right || fire || fire2 || play;
+            const isNonNeutral = up || down || left || right || fire || fire2 || green || yellow || lShoulder || rShoulder || play;
 
             if (isNonNeutral) {
               chosenPad = pad;
-              padState = { up, down, left, right, fire, fire2, play, isNonNeutral, axes, buttons };
+              padState = { up, down, left, right, fire, fire2, green, yellow, lShoulder, rShoulder, play, isNonNeutral, axes, buttons };
               break;
             } else if (!chosenPad) {
               chosenPad = pad;
-              padState = { up, down, left, right, fire, fire2, play, isNonNeutral, axes, buttons };
+              padState = { up, down, left, right, fire, fire2, green, yellow, lShoulder, rShoulder, play, isNonNeutral, axes, buttons };
             }
           }
 
           if (padState && chosenPad) {
-            const { up, down, left, right, fire, fire2, play, isNonNeutral, axes, buttons } = padState;
+            const { up, down, left, right, fire, fire2, green, yellow, lShoulder, rShoulder, play, isNonNeutral, axes, buttons } = padState;
             const stateChanged = (
               up !== lastJoy.up ||
               down !== lastJoy.down ||
@@ -480,6 +484,10 @@ class AmigaXRApp {
               right !== lastJoy.right ||
               fire !== lastJoy.fire ||
               fire2 !== lastJoy.fire2 ||
+              green !== lastJoy.green ||
+              yellow !== lastJoy.yellow ||
+              lShoulder !== lastJoy.lShoulder ||
+              rShoulder !== lastJoy.rShoulder ||
               play !== lastJoy.play
             );
 
@@ -487,7 +495,7 @@ class AmigaXRApp {
             // Transmit immediately on state change, or heartbeat every 50ms while held to avoid timeouts
             if (stateChanged || (isNonNeutral && (now - lastJoyTransmit > 50))) {
               lastJoyTransmit = now;
-              lastJoy = { up, down, left, right, fire, fire2, play };
+              lastJoy = { up, down, left, right, fire, fire2, green, yellow, lShoulder, rShoulder, play };
               const safeButtons = Array.from(buttons || []).map(b => ({
                 pressed: !!(b && b.pressed),
                 value: (b && typeof b.value === 'number') ? b.value : (b && b.pressed ? 1 : 0)

@@ -670,8 +670,9 @@
       window.parent.postMessage({ msg: 'pointer_lock_change', locked }, '*');
     });
 
-    // Click directly on running emulator screen captures mouse pointer lock for in-game control
+    // Click directly on running emulator screen captures mouse pointer lock for in-game control (only for computer cores, not CD32)
     window.addEventListener('click', (e) => {
+      if (isCd32) return;
       if (e.button === 0 && !document.pointerLockElement) {
         const isInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON');
         if (!isInput) {
@@ -935,17 +936,20 @@
           else if (data.code === 'ArrowDown' || keyCode === 40) gm.simulateInput(0, 5, isDown ? 1 : 0);
           else if (data.code === 'ArrowLeft' || keyCode === 37) gm.simulateInput(0, 6, isDown ? 1 : 0);
           else if (data.code === 'ArrowRight' || keyCode === 39) gm.simulateInput(0, 7, isDown ? 1 : 0);
-          else if (data.code === 'KeyX' || keyCode === 88 || data.code === 'ControlLeft') {
-            gm.simulateInput(0, 8, isDown ? 1 : 0); // Fire 1 / A
-            gm.simulateInput(0, 0, isDown ? 1 : 0); // Fire 1 / B
-          } else if (data.code === 'KeyZ' || keyCode === 90 || data.code === 'AltLeft') {
-            gm.simulateInput(0, 1, isDown ? 1 : 0); // Fire 2 / Y
-            gm.simulateInput(0, 9, isDown ? 1 : 0); // Fire 2 / X
+          else if (data.code === 'KeyX' || keyCode === 88 || data.code === 'ControlLeft' || data.code === 'Space') {
+            gm.simulateInput(0, 0, isDown ? 1 : 0); // CD32 Red / Primary Fire (Shoot)
+          } else if (data.code === 'KeyZ' || keyCode === 90 || data.code === 'AltLeft' || data.code === 'KeyC') {
+            gm.simulateInput(0, 8, isDown ? 1 : 0); // CD32 Blue / Secondary Fire (Retreat Mode)
+          } else if (data.code === 'KeyA' || data.code === 'KeyS') {
+            gm.simulateInput(0, 9, isDown ? 1 : 0); // CD32 Yellow / Weapon Select
+          } else if (data.code === 'KeyD') {
+            gm.simulateInput(0, 1, isDown ? 1 : 0); // CD32 Green / Computer Terminal
           } else if (data.code === 'Enter' || keyCode === 13) {
-            gm.simulateInput(0, 3, isDown ? 1 : 0); // Start / Play
+            gm.simulateInput(0, 3, isDown ? 1 : 0); // Start / Play / Pause
           }
         }
       } else if (data.cmd === 'remote_mouse') {
+        if (isCd32) return; // CD32 console is strictly joypad driven; avoid quadrature noise in controller registers
         const canvas = document.querySelector('canvas') || window;
         const rect = (canvas.getBoundingClientRect && typeof canvas.getBoundingClientRect === 'function')
           ? canvas.getBoundingClientRect()
@@ -988,6 +992,10 @@
         if (data.right !== undefined) parentJoyState.right = !!data.right;
         if (data.fire !== undefined) parentJoyState.fire = !!data.fire;
         if (data.fire2 !== undefined) parentJoyState.fire2 = !!data.fire2;
+        if (data.green !== undefined) parentJoyState.green = !!data.green;
+        if (data.yellow !== undefined) parentJoyState.yellow = !!data.yellow;
+        if (data.lShoulder !== undefined) parentJoyState.lShoulder = !!data.lShoulder;
+        if (data.rShoulder !== undefined) parentJoyState.rShoulder = !!data.rShoulder;
         if (data.play !== undefined) parentJoyState.play = !!data.play;
         parentJoyState.lastReceived = Date.now();
       } else if (data === 'open_settings' || (data && data.cmd === 'open_settings')) {
@@ -1010,6 +1018,10 @@
       right: false,
       fire: false,
       fire2: false,
+      green: false,
+      yellow: false,
+      lShoulder: false,
+      rShoulder: false,
       play: false,
       port: 2,
       lastReceived: 0
@@ -1094,12 +1106,17 @@
                 const left = stickLeft || dpadLeft || altHatLeft;
                 const right = stickRight || dpadRight || altHatRight;
 
-                const fire = !!((btns[0] && btns[0].pressed) || (btns[2] && btns[2].pressed) || (btns[5] && btns[5].pressed) || (btns[7] && btns[7].pressed));
-                const fire2 = !!((btns[1] && btns[1].pressed) || (btns[3] && btns[3].pressed) || (btns[4] && btns[4].pressed) || (btns[6] && btns[6].pressed));
+                // Dedicated buttons: A/RT = Red (Shoot), B/LT = Blue (Retreat), X = Green, Y = Yellow (Weapons)
+                const fire = !!((btns[0] && btns[0].pressed) || (btns[7] && btns[7].pressed));
+                const fire2 = !!((btns[1] && btns[1].pressed) || (btns[6] && btns[6].pressed));
+                const green = !!(btns[2] && btns[2].pressed);
+                const yellow = !!(btns[3] && btns[3].pressed);
+                const lShoulder = !!(btns[4] && btns[4].pressed);
+                const rShoulder = !!(btns[5] && btns[5].pressed);
                 const play = !!((btns[9] && btns[9].pressed) || (btns[8] && btns[8].pressed));
 
-                if (up || down || left || right || fire || fire2 || play) {
-                  directJoy = { up, down, left, right, fire, fire2, play, port: 2 };
+                if (up || down || left || right || fire || fire2 || green || yellow || lShoulder || rShoulder || play) {
+                  directJoy = { up, down, left, right, fire, fire2, green, yellow, lShoulder, rShoulder, play, port: 2 };
                   break;
                 }
               }
@@ -1114,14 +1131,13 @@
           } else if (parentJoyState.lastReceived && (now - parentJoyState.lastReceived < 1500)) {
             active = parentJoyState;
           } else {
-            active = { up: false, down: false, left: false, right: false, fire: false, fire2: false, play: false, port: 2 };
+            active = { up: false, down: false, left: false, right: false, fire: false, fire2: false, green: false, yellow: false, lShoulder: false, rShoulder: false, play: false, port: 2 };
           }
 
           // 3. Port resolution:
           // In Libretro VICE (C64 / Plus4 / VIC20), RetroArch port 0 maps to vice_joyport (default 2)
           // and port 1 maps to joyport 1.
-          // Mirror inputs across BOTH ports 0 and 1 so all single-player C64 games work seamlessly
-          // whether they require Joyport 1 (e.g. Commando) or Joyport 2 (e.g. Turrican, Giana Sisters).
+          // Mirror inputs across BOTH ports 0 and 1 so all single-player C64 games work seamlessly.
           const isVice = (activeCore === 'c64' || activeCore === 'plus4' || activeCore === 'vic20');
           if (isVice) {
             for (const p of [0, 1]) {
@@ -1129,10 +1145,9 @@
               gm.simulateInput(p, 5, active.down ? 1 : 0);
               gm.simulateInput(p, 6, active.left ? 1 : 0);
               gm.simulateInput(p, 7, active.right ? 1 : 0);
-              gm.simulateInput(p, 8, active.fire ? 1 : 0); // Fire 1 (Button A / Red)
-              gm.simulateInput(p, 0, active.fire ? 1 : 0); // Fire 1 (Button B / Red)
-              gm.simulateInput(p, 1, active.fire2 ? 1 : 0); // Fire 2 (Button Y / Blue)
-              gm.simulateInput(p, 9, active.fire2 ? 1 : 0); // Fire 2 (Button X / Blue)
+              const c64Fire = (active.fire || active.fire2) ? 1 : 0;
+              gm.simulateInput(p, 0, c64Fire); // RetroPad B
+              gm.simulateInput(p, 8, c64Fire); // RetroPad A
               if (active.play) gm.simulateInput(p, 3, 1);
             }
           } else {
@@ -1144,23 +1159,41 @@
             gm.simulateInput(primaryPort, 5, active.down ? 1 : 0);
             gm.simulateInput(primaryPort, 6, active.left ? 1 : 0);
             gm.simulateInput(primaryPort, 7, active.right ? 1 : 0);
-            gm.simulateInput(primaryPort, 8, active.fire ? 1 : 0); // Fire 1 (Button A / Red)
-            gm.simulateInput(primaryPort, 0, active.fire ? 1 : 0); // Fire 1 (Button B / Red)
-            gm.simulateInput(primaryPort, 1, active.fire2 ? 1 : 0); // Fire 2 (Button Y / Blue)
-            gm.simulateInput(primaryPort, 9, active.fire2 ? 1 : 0); // Fire 2 (Button X / Blue)
-            if (active.play) {
-              gm.simulateInput(primaryPort, 3, 1);
-            }
+
+            // RetroPad B (0) = CD32 Red / Amiga Fire 1 (Primary Action / Shoot)
+            // CRITICAL: Do NOT press Blue (8) on fire, which causes Alien Breed to enter Retreat Mode and spin!
+            gm.simulateInput(primaryPort, 0, active.fire ? 1 : 0);
+
+            // RetroPad A (8) = CD32 Blue / Amiga Fire 2 (Retreat Mode / Jump / 2nd Fire)
+            gm.simulateInput(primaryPort, 8, active.fire2 ? 1 : 0);
+
+            // RetroPad Y (1) = CD32 Green / Amiga Fire 3
+            gm.simulateInput(primaryPort, 1, active.green ? 1 : 0);
+
+            // RetroPad X (9) = CD32 Yellow (Weapon Select in Alien Breed)
+            gm.simulateInput(primaryPort, 9, active.yellow ? 1 : 0);
+
+            // RetroPad L (10) = CD32 Rewind / Left Ear
+            gm.simulateInput(primaryPort, 10, active.lShoulder ? 1 : 0);
+
+            // RetroPad R (11) = CD32 Fast Forward / Right Ear
+            gm.simulateInput(primaryPort, 11, active.rShoulder ? 1 : 0);
+
+            // RetroPad Start (3) = CD32 Play / Pause / Start
+            gm.simulateInput(primaryPort, 3, active.play ? 1 : 0);
 
             // Keep secondary port completely clean and zeroed out so CPU companion or mouse is undisturbed
             gm.simulateInput(secondaryPort, 4, 0);
             gm.simulateInput(secondaryPort, 5, 0);
             gm.simulateInput(secondaryPort, 6, 0);
             gm.simulateInput(secondaryPort, 7, 0);
-            gm.simulateInput(secondaryPort, 8, 0);
             gm.simulateInput(secondaryPort, 0, 0);
+            gm.simulateInput(secondaryPort, 8, 0);
             gm.simulateInput(secondaryPort, 1, 0);
             gm.simulateInput(secondaryPort, 9, 0);
+            gm.simulateInput(secondaryPort, 10, 0);
+            gm.simulateInput(secondaryPort, 11, 0);
+            gm.simulateInput(secondaryPort, 3, 0);
           }
         }
       } catch(e) {}
