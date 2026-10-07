@@ -67,10 +67,10 @@
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/commodore-guardian.git
+git clone https://github.com/lennona34-glitch/quest-amiga-xr.git
 
 # Navigate into project directory
-cd commodore-guardian
+cd quest-amiga-xr
 
 # Install dependencies
 npm install
