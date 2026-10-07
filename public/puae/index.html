@@ -670,6 +670,21 @@
       window.parent.postMessage({ msg: 'pointer_lock_change', locked }, '*');
     });
 
+    // Click directly on running emulator screen captures mouse pointer lock for in-game control
+    window.addEventListener('click', (e) => {
+      if (e.button === 0 && !document.pointerLockElement) {
+        const isInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON');
+        if (!isInput) {
+          const c = document.querySelector('#game canvas') || document.querySelector('canvas') || document.getElementById('game');
+          if (c && c.requestPointerLock) {
+            try {
+              c.requestPointerLock();
+            } catch(err) {}
+          }
+        }
+      }
+    });
+
     // Middle-click (button 1) traps or releases pointer lock
     window.addEventListener('mousedown', (e) => {
       if (e.button === 1) {

@@ -624,9 +624,12 @@ class AmigaXRApp {
 
     slot.appendChild(this.emuIframe);
 
-    // Clicking anywhere in the canvas slot wakes audio (mouse capture is manual)
-    slot.addEventListener('click', () => {
+    // Clicking anywhere in the canvas slot wakes audio and captures mouse focus
+    slot.addEventListener('click', (e) => {
       this.resumeEmulatorAudio();
+      if (e.button === 0 && (!this.ui || !this.ui.mouseLocked)) {
+        this.requestMouseLock();
+      }
     });
 
     this.emuIframe.onload = () => {
@@ -1056,7 +1059,7 @@ class AmigaXRApp {
       try {
         const win = this.emuIframe.contentWindow;
         win.postMessage({ cmd: 'request_pointer_lock' }, '*');
-        const canvas = win.document ? (win.document.getElementById('canvas') || win.document.querySelector('canvas')) : null;
+        const canvas = win.document ? (win.document.getElementById('canvas') || win.document.querySelector('#game canvas') || win.document.querySelector('canvas') || win.document.getElementById('game')) : null;
         if (canvas && typeof canvas.requestPointerLock === 'function') {
           canvas.requestPointerLock();
         } else if (typeof win.request_pointerlock === 'function') {

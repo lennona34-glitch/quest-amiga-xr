@@ -2916,6 +2916,11 @@ function InitWrappers() {
             e.preventDefault();
             return false;
         }, false);
+        canvas.addEventListener('click', function(e) {
+            if (e.button === 0 && !has_pointer_lock && typeof request_pointerlock === 'function') {
+                request_pointerlock();
+            }
+        }, false);
     }
     canvas.requestPointerLock = canvas.requestPointerLock ||
                                 canvas.mozRequestPointerLock;

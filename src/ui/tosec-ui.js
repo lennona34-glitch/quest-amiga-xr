@@ -182,8 +182,7 @@ export class TosecUI {
                 <span class="catalog-stats" id="catalog_stats">Scanning archive...</span>
               </div>
               <div class="catalog-header-actions">
-                <button id="btn_random_game" class="random-btn" title="Pick a Random Game (Disk 1) - Keyboard Shortcut: R">🎲 Random</button>
-                <button id="btn_tosec_rescan" class="mini-btn rescan-btn" title="Rescan for newly downloaded disks or ISOs">🔄</button>
+                <button id="btn_tosec_rescan" class="mini-btn rescan-btn" title="Rescan for newly downloaded disks or ISOs">🔄 Rescan</button>
               </div>
             </div>
 
@@ -638,14 +637,10 @@ export class TosecUI {
     }
 
     // Random Game and Insta-Load buttons
-    const randomBtn = el.querySelector('#btn_random_game');
     const mainRandomBtn = el.querySelector('#btn_main_random');
     const zenRandomBtn = el.querySelector('#zen_btn_random');
     const instaLoadChk = el.querySelector('#chk_insta_load');
 
-    if (randomBtn) {
-      randomBtn.addEventListener('click', () => this.triggerRandomGame());
-    }
     if (mainRandomBtn) {
       mainRandomBtn.addEventListener('click', () => this.triggerRandomGame());
     }

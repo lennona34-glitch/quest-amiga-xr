@@ -219,8 +219,10 @@ body, html {
 .hud-btn {
   height: 30px;
   padding: 0 9px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #2a3550;
   border-radius: 6px;
+  background: #161e31;
+  color: #cbd5e1;
   font-weight: 700;
   font-size: 11px;
   letter-spacing: 0.2px;
@@ -229,61 +231,101 @@ body, html {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   transition: all 0.15s ease;
   user-select: none;
+  box-shadow: none;
 }
 
 .hud-btn:hover {
-  filter: brightness(1.15);
+  background: #1f2a44;
+  border-color: #38bdf8;
+  color: #ffffff;
   transform: translateY(-1px);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 .hud-btn:active {
   transform: translateY(0);
 }
 
+/* 🎲 Random Game Dice Button - Dark Navy Background for High-Contrast Dice Face */
+.btn-random {
+  background: #161e31;
+  color: #cbd5e1;
+  border: 1px solid #2a3550;
+}
+
+.btn-random:hover {
+  background: #1f2a44;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
 .btn-crt {
-  background: rgba(30, 41, 59, 0.7);
-  color: #94a3b8;
-  border: 1px solid #475569;
+  background: #161e31;
+  color: #cbd5e1;
+  border: 1px solid #2a3550;
 }
 
 .btn-crt.crt-active {
-  background: rgba(34, 197, 94, 0.2);
+  background: rgba(34, 197, 94, 0.18);
   color: #4ade80;
   border-color: rgba(74, 222, 128, 0.5);
   box-shadow: 0 0 8px rgba(74, 222, 128, 0.25);
 }
 
 .btn-display {
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: #161e31;
+  color: #cbd5e1;
+  border: 1px solid #2a3550;
 }
 
 .btn-display:hover {
-  background: rgba(99, 102, 241, 0.28);
-  color: #e0e7ff;
-  border-color: rgba(129, 140, 248, 0.6);
+  background: #1f2a44;
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 .btn-ar {
-  background: linear-gradient(135deg, #0088ff, #00d2ff);
-  color: white;
+  background: #161e31;
+  color: #cbd5e1;
+  border: 1px solid #2a3550;
+}
+
+.btn-ar:hover {
+  background: #1f2a44;
   border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 .btn-vr {
-  background: linear-gradient(135deg, #7928ca, #ff0080);
-  color: white;
-  border-color: #ec4899;
+  background: #161e31;
+  color: #cbd5e1;
+  border: 1px solid #2a3550;
+}
+
+.btn-vr:hover {
+  background: #1f2a44;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 .btn-zen {
-  background: rgba(20, 184, 166, 0.18);
-  color: #2dd4bf;
-  border: 1px solid rgba(20, 184, 166, 0.4);
+  background: #161e31 !important;
+  color: #cbd5e1 !important;
+  border: 1px solid #2a3550 !important;
+}
+
+.btn-zen:hover {
+  background: #1f2a44 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 .mouse-chip {
@@ -291,19 +333,27 @@ body, html {
   padding: 0 8px;
   font-size: 11px;
   border-radius: 6px;
-  border: 1px solid #363e56;
-  background: #1c2333;
-  color: #94a3b8;
+  border: 1px solid #2a3550;
+  background: #161e31;
+  color: #cbd5e1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   transition: all 0.2s ease;
 }
 
+.mouse-chip:hover {
+  background: #1f2a44;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
 .mouse-chip.active {
   background: rgba(56, 189, 248, 0.2);
   color: #38bdf8;
   border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 /* Authentic Commodore 1084S CRT & Scanline Filter System */
@@ -570,10 +620,12 @@ body, html {
 /* Catalog Sidebar */
 .hud-catalog {
   width: clamp(520px, 36vw, 780px);
+  min-width: 340px;
   background-color: var(--bg-card);
   border-left: 2px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .catalog-header {
@@ -690,18 +742,20 @@ body, html {
 .catalog-results {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden !important;
   padding: 8px 12px;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-auto-rows: max-content;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  align-content: start;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .catalog-results .empty-state {
-  grid-column: 1 / -1;
   text-align: center;
   padding: 30px 16px;
+  width: 100%;
 }
 
 .catalog-item {
@@ -718,6 +772,10 @@ body, html {
   min-height: 44px;
   height: 44px;
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .catalog-item:hover {
@@ -732,7 +790,7 @@ body, html {
 }
 
 .item-info {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
 }
@@ -745,6 +803,9 @@ body, html {
   text-overflow: ellipsis;
   color: #e2e6f2;
   line-height: 1.2;
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 .item-meta {
@@ -753,12 +814,17 @@ body, html {
   margin-top: 2px;
   font-size: 10px;
   align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .item-actions {
   flex-shrink: 0;
+  margin-left: auto;
   display: flex;
   gap: 4px;
+  align-items: center;
 }
 
 .badge {
@@ -790,6 +856,7 @@ body, html {
   font-weight: bold;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-load-df0:hover {
@@ -804,6 +871,8 @@ body, html {
   border-radius: 4px;
   font-size: 10px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .mini-action-btn:hover {
@@ -811,10 +880,11 @@ body, html {
 }
 
 .catalog-load-more-container {
-  grid-column: 1 / -1;
   padding: 10px 0;
   display: flex;
   justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-load-more {
@@ -931,16 +1001,22 @@ body, html {
 
 /* Zen Mode Button */
 .btn-zen {
-  background: linear-gradient(135deg, #10b981, #06b6d4);
-  color: white;
+  background: #161e31;
+  color: #cbd5e1;
+  border: 1px solid #2a3550;
 }
 
 .btn-zen:hover {
-  filter: brightness(1.1);
+  background: #1f2a44;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
 
 .btn-zen.active {
-  background: linear-gradient(135deg, #e11d48, #f43f5e);
+  background: rgba(225, 29, 72, 0.2);
+  border-color: #f43f5e;
+  color: #fda4af;
 }
 
 /* Zen Mode Fullscreen Layout */
@@ -1406,18 +1482,20 @@ body, html {
 
 /* ⚡ Amiga Cheats & Action Replay Modal */
 .btn-cheats {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff !important;
+  background: #161e31 !important;
+  color: #cbd5e1 !important;
   font-weight: 700;
-  border: 1px solid #fbbf24;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+  border: 1px solid #2a3550 !important;
+  box-shadow: none !important;
   transition: all 0.2s ease;
 }
 
 .btn-cheats:hover {
-  filter: brightness(1.2);
+  background: #1f2a44 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 .cheats-modal-overlay {
@@ -1801,62 +1879,70 @@ body, html {
 
 /* 🌐 Commodore Scene Vault (CSDb, Plus/4 World, Pouët & Demozoo) */
 .btn-scene {
-  background: linear-gradient(135deg, #06b6d4, #8b5cf6);
-  color: #ffffff !important;
+  background: #161e31 !important;
+  color: #cbd5e1 !important;
   font-weight: 700;
-  border: 1px solid #38bdf8;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+  border: 1px solid #2a3550 !important;
+  box-shadow: none !important;
   transition: all 0.2s ease;
 }
 
 .btn-scene:hover {
-  filter: brightness(1.2);
+  background: #1f2a44 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
-  box-shadow: 0 0 16px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 /* ⚡ C64 / 8-Bit Warp Boot Toggle */
 .btn-warp {
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
-  color: #ffffff !important;
+  background: #161e31 !important;
+  color: #cbd5e1 !important;
   font-weight: 700;
-  border: 1px solid #fbbf24;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  border: 1px solid #2a3550 !important;
+  box-shadow: none !important;
   transition: all 0.2s ease;
 }
 
 .btn-warp.authentic {
-  background: linear-gradient(135deg, #334155, #1e293b);
-  border: 1px solid #64748b;
+  background: #161e31 !important;
+  border: 1px solid #2a3550 !important;
   box-shadow: none;
-  color: #cbd5e1 !important;
+  color: #94a3b8 !important;
 }
 
 .btn-warp:hover {
-  filter: brightness(1.2);
+  background: #1f2a44 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 /* 🛡️ Commodore Guardian Splash Toggle */
 .btn-splash {
-  background: linear-gradient(135deg, #10b981, #0284c7);
-  color: #ffffff !important;
+  background: #161e31 !important;
+  color: #cbd5e1 !important;
   font-weight: 700;
-  border: 1px solid #34d399;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  border: 1px solid #2a3550 !important;
+  box-shadow: none !important;
   transition: all 0.2s ease;
 }
 
 .btn-splash.bios-mode {
-  background: linear-gradient(135deg, #475569, #1e293b);
-  border: 1px solid #64748b;
+  background: #161e31 !important;
+  border: 1px solid #2a3550 !important;
   box-shadow: none;
-  color: #cbd5e1 !important;
+  color: #94a3b8 !important;
 }
 
 .btn-splash:hover {
-  filter: brightness(1.2);
+  background: #1f2a44 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 .scene-modal-overlay {
@@ -2243,14 +2329,16 @@ body, html {
 
 /* Copperline Netplay UI */
 .btn-netplay {
-  background: rgba(14, 165, 233, 0.15) !important;
-  color: #38bdf8 !important;
-  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  background: #161e31 !important;
+  color: #cbd5e1 !important;
+  border: 1px solid #2a3550 !important;
 }
 
 .btn-netplay:hover {
-  background: rgba(14, 165, 233, 0.3) !important;
+  background: #1f2a44 !important;
   border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 .netplay-modal-card {
