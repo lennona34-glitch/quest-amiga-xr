@@ -4,6 +4,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import zlib from 'zlib';
 import crypto from 'crypto';
 import { spawnSync } from 'child_process';
@@ -11,47 +12,175 @@ import { WebSocketServer } from 'ws';
 import { fetchCsdbReleases, getPlus4WorldReleases, getC128Releases, getDemosceneReleases, downloadSceneDisk } from './scene-vault-service.js';
 
 export function tosecAmigaServerPlugin() {
-  const TOSEC_SEARCH_PATHS = [
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore C128 [TOSEC]',
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore C64 [TOSEC v2012-04-23]',
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore Amiga [TOSEC]',
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore Amiga CD32 [TOSEC]',
-    'C:/Users/adria/Desktop/Amiga Emulator/Amiga_CD32_TOSEC_2009_04_18',
-    'C:/Users/adria/Desktop/Amiga Emulator/CD32',
-    'C:/Users/adria/Desktop/Amiga_CD32_TOSEC_2009_04_18',
-    'C:/Users/adria/Desktop/CD32',
-    'C:/Users/adria/Downloads/InternetArchive/Amiga_CD32_TOSEC_2009_04_18',
-    'C:/Users/adria/Downloads/InternetArchive',
-    'C:/Users/adria/Downloads/Amiga_CD32_TOSEC_2009_04_18',
-    'C:/Users/adria/Downloads/Commodore Amiga CD32 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore Amiga [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore Amiga CD32 [TOSEC]',
-    'E:/Commodore Amiga CD32 [TOSEC]',
-    'E:/Amiga CD32 [TOSEC]',
-    'E:/Amiga_CD32_TOSEC_2009_04_18',
-    'E:/CD32',
-    'E:/Commodore Amiga [TOSEC]',
-    'E:/Commodore 64 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore 64 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore C64 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore 128 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore Plus4 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore Plus-4 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore 16 [TOSEC]',
-    'C:/Users/adria/Desktop/Commodore VIC-20 [TOSEC]',
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore 64',
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore 128',
-    'C:/Users/adria/Desktop/Amiga Emulator/Commodore Plus4',
-    'C:/Users/adria/Desktop/Amiga Emulator/C64',
-    'C:/Users/adria/Desktop/Amiga Emulator/C128',
-    'C:/Users/adria/Desktop/Amiga Emulator/Plus4',
-    'C:/Users/adria/Desktop/Amiga Emulator/quest-amiga-xr/public/disks'
-  ];
-
-  const ROMS_DIR = 'C:/Users/adria/Desktop/Amiga Emulator/ROMs';
+  const CONFIG_PATHS_FILE = path.resolve('.tosec_paths.json');
   const CACHE_FILE = path.resolve('.tosec_index_cache.json');
 
-  let tosecRoot = TOSEC_SEARCH_PATHS[0];
+  function loadCustomConfigPaths() {
+    try {
+      if (fs.existsSync(CONFIG_PATHS_FILE)) {
+        const raw = fs.readFileSync(CONFIG_PATHS_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.customPaths)) {
+          return parsed.customPaths.filter(p => typeof p === 'string' && p.trim().length > 0);
+        }
+      }
+    } catch (e) {
+      console.warn('[Commodore Guardian] Custom paths config read error:', e.message);
+    }
+    return [];
+  }
+
+  function saveCustomConfigPaths(paths) {
+    try {
+      const clean = Array.from(new Set(paths.map(p => path.normalize(p).replace(/[\\/]+$/, ''))));
+      fs.writeFileSync(CONFIG_PATHS_FILE, JSON.stringify({ customPaths: clean }, null, 2), 'utf8');
+      return true;
+    } catch (e) {
+      console.warn('[Commodore Guardian] Custom paths config write error:', e.message);
+      return false;
+    }
+  }
+
+  function getAvailableDriveRoots() {
+    const drives = [];
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    for (const l of letters) {
+      const root = `${l}:/`;
+      try {
+        if (fs.existsSync(root)) drives.push(`${l}:`);
+      } catch (e) {}
+    }
+    return drives;
+  }
+
+  const CONTAINER_DIR_NAMES = [
+    'amiga emulator',
+    'emulators',
+    'games',
+    'roms'
+  ];
+
+  const KNOWN_COLLECTION_NAMES = [
+    'Commodore Amiga [TOSEC]',
+    'Commodore Amiga CD32 [TOSEC]',
+    'Commodore C64 [TOSEC v2012-04-23]',
+    'Commodore C64 [TOSEC]',
+    'Commodore 64 [TOSEC]',
+    'Commodore C128 [TOSEC]',
+    'Commodore 128 [TOSEC]',
+    'Commodore Plus4 [TOSEC]',
+    'Commodore Plus-4 [TOSEC]',
+    'Commodore 16 [TOSEC]',
+    'Commodore VIC-20 [TOSEC]',
+    'Amiga_CD32_TOSEC_2009_04_18',
+    'CD32',
+    'Commodore Amiga',
+    'Commodore C64',
+    'Commodore C128',
+    'Commodore Plus4',
+    'Amiga',
+    'C64',
+    'C128',
+    'Plus4',
+    'VIC20'
+  ];
+
+  function getDiscoveredSearchPaths() {
+    const cwd = process.cwd();
+    const parentDir = path.resolve(cwd, '..');
+    const grandParentDir = path.resolve(cwd, '../..');
+    const availableDrives = getAvailableDriveRoots();
+    const customPaths = loadCustomConfigPaths();
+
+    const searchBases = new Set([
+      parentDir,
+      grandParentDir,
+      ...availableDrives.flatMap(d => [
+        `${d}/Amiga Emulator`,
+        `${d}/Emulators/Amiga Emulator`,
+        `${d}/Emulators`,
+        `${d}/Games`,
+        `${d}/`
+      ])
+    ]);
+
+    try {
+      const home = os.homedir();
+      searchBases.add(path.join(home, 'Desktop/Amiga Emulator'));
+      searchBases.add(path.join(home, 'Desktop'));
+      searchBases.add(path.join(home, 'Downloads'));
+      searchBases.add(path.join(home, 'Downloads/InternetArchive'));
+    } catch (e) {}
+
+    const candidates = [];
+    const seen = new Set();
+    const addCandidate = (p) => {
+      if (!p) return;
+      try {
+        if (fs.existsSync(p)) {
+          const norm = path.normalize(path.resolve(p)).toLowerCase();
+          const baseName = path.basename(norm);
+          if (CONTAINER_DIR_NAMES.includes(baseName)) return;
+          if (!seen.has(norm)) {
+            seen.add(norm);
+            candidates.push(path.resolve(p));
+          }
+        }
+      } catch (e) {}
+    };
+
+    // User-configured custom paths ALWAYS have highest priority
+    for (const cp of customPaths) {
+      if (cp && fs.existsSync(cp)) {
+        const norm = path.normalize(path.resolve(cp)).toLowerCase();
+        if (!seen.has(norm)) {
+          seen.add(norm);
+          candidates.push(path.resolve(cp));
+        }
+      }
+    }
+
+    // Local project public disks
+    const localDisks = path.resolve('public/disks');
+    if (fs.existsSync(localDisks)) {
+      addCandidate(localDisks);
+    }
+
+    // Probe known collections under all search bases
+    for (const base of searchBases) {
+      if (!fs.existsSync(base)) continue;
+      for (const coll of KNOWN_COLLECTION_NAMES) {
+        addCandidate(path.join(base, coll));
+      }
+      try {
+        const subs = fs.readdirSync(base, { withFileTypes: true });
+        for (const s of subs) {
+          if (s.isDirectory() && s.name !== 'quest-amiga-xr' && s.name !== 'node_modules' && s.name !== '.git' && s.name !== 'dist' && s.name !== 'ROMs') {
+            const lower = s.name.toLowerCase();
+            if (CONTAINER_DIR_NAMES.includes(lower)) continue;
+            if (
+              lower.includes('cd32') ||
+              lower.includes('amiga') ||
+              lower.includes('tosec') ||
+              lower.includes('commodore') ||
+              lower.includes('c64') ||
+              lower.includes('c128') ||
+              lower.includes('plus4') ||
+              lower.includes('plus-4') ||
+              lower.includes('c16') ||
+              lower.includes('vic20')
+            ) {
+              addCandidate(path.join(base, s.name));
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    return candidates;
+  }
+
+  let tosecRoot = path.resolve('..');
   let gameIndex = [];
   let indexBuilt = false;
   let activeRoots = [];
@@ -186,11 +315,6 @@ export function tosecAmigaServerPlugin() {
           ) {
             const parsed = parseTosecTitle(ent.name);
             const system = detectSystem(ent.name, full, rootDir);
-            let size = 901120;
-            try {
-              size = fs.statSync(full).size;
-            } catch (e) {}
-
             const category = detectCategory(rel, ent.name);
             items.push({
               name: parsed.cleanName,
@@ -203,7 +327,7 @@ export function tosecAmigaServerPlugin() {
               rootPath: rootDir,
               system: system,
               category: category,
-              size: size
+              size: 901120
             });
           }
         }
@@ -232,7 +356,7 @@ export function tosecAmigaServerPlugin() {
               }
             }
             activeRoots = parsed.activeRoots || [];
-            tosecRoot = parsed.tosecRoot || activeRoots[0] || TOSEC_SEARCH_PATHS[0];
+            tosecRoot = parsed.tosecRoot || activeRoots[0] || path.resolve('..');
             indexBuilt = true;
             console.log(`[Commodore Guardian] Instant Cache Loaded: ${gameIndex.length} items across ${activeRoots.length} roots in ${Date.now() - start}ms`);
             return;
@@ -249,58 +373,7 @@ export function tosecAmigaServerPlugin() {
     gameIndex = [];
     activeRoots = [];
 
-    const normSet = new Set();
-    const candidateDirs = [];
-
-    const addCandidate = (rawPath) => {
-      if (!rawPath) return;
-      try {
-        if (fs.existsSync(rawPath)) {
-          const normalized = path.normalize(path.resolve(rawPath)).toLowerCase();
-          if (!normSet.has(normalized)) {
-            normSet.add(normalized);
-            candidateDirs.push(rawPath);
-          }
-        }
-      } catch (e) {}
-    };
-
-    for (const p of TOSEC_SEARCH_PATHS) {
-      addCandidate(p);
-    }
-
-    // Auto-detect any Commodore, CD32, and TOSEC folders inside Desktop, Downloads, and E:\
-    const searchBases = [
-      'C:/Users/adria/Desktop/Amiga Emulator',
-      'C:/Users/adria/Desktop',
-      'C:/Users/adria/Downloads',
-      'E:/'
-    ];
-    for (const baseDir of searchBases) {
-      if (fs.existsSync(baseDir)) {
-        try {
-          const subs = fs.readdirSync(baseDir, { withFileTypes: true });
-          for (const s of subs) {
-            if (s.isDirectory() && s.name !== 'quest-amiga-xr' && s.name !== 'ROMs') {
-              const lower = s.name.toLowerCase();
-              if (
-                lower.includes('cd32') ||
-                lower.includes('amiga') ||
-                lower.includes('tosec') ||
-                lower.includes('commodore') ||
-                lower.includes('c64') ||
-                lower.includes('c128') ||
-                lower.includes('plus4') ||
-                lower.includes('plus-4') ||
-                lower.includes('c16')
-              ) {
-                addCandidate(path.join(baseDir, s.name));
-              }
-            }
-          }
-        } catch (e) {}
-      }
-    }
+    const candidateDirs = getDiscoveredSearchPaths();
 
     // Remove any directory that is a subdirectory of another candidate
     const finalScanDirs = candidateDirs.filter(dir => {
@@ -331,7 +404,7 @@ export function tosecAmigaServerPlugin() {
       }
     }
 
-    tosecRoot = activeRoots[0] || TOSEC_SEARCH_PATHS[0];
+    tosecRoot = activeRoots[0] || path.resolve('..');
     indexBuilt = true;
     const elapsed = Date.now() - start;
     console.log(`[Commodore Guardian] Indexed ${gameIndex.length} items across ${activeRoots.length} roots in ${elapsed}ms`);
@@ -645,10 +718,188 @@ export function tosecAmigaServerPlugin() {
   return {
     name: 'tosec-amiga-server-plugin',
     configureServer(server) {
+      function readJsonBody(req) {
+        return new Promise((resolve, reject) => {
+          let body = '';
+          req.on('data', chunk => {
+            body += chunk;
+            if (body.length > 2e6) {
+              req.destroy();
+              reject(new Error('Payload too large'));
+            }
+          });
+          req.on('end', () => {
+            try {
+              resolve(body ? JSON.parse(body) : {});
+            } catch (err) {
+              reject(err);
+            }
+          });
+          req.on('error', reject);
+        });
+      }
+
       setTimeout(buildIndex, 50);
 
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url, `http://${req.headers.host}`);
+
+        // 1. Folders management endpoints:
+        // GET /api/tosec/folders - list active roots, custom paths, available drives, and suggested paths
+        if (url.pathname === '/api/tosec/folders') {
+          if (!indexBuilt) buildIndex();
+          const customPaths = loadCustomConfigPaths();
+          const availableDrives = getAvailableDriveRoots();
+          const currentDrive = path.parse(process.cwd()).root;
+          const candidates = getDiscoveredSearchPaths();
+          const activeSet = new Set(activeRoots.map(r => path.normalize(r).toLowerCase()));
+          const suggestedFolders = candidates
+            .filter(c => !activeSet.has(path.normalize(c).toLowerCase()))
+            .map(c => ({
+              path: c,
+              displayPath: c.replace(/\//g, '\\'),
+              name: path.basename(c),
+              system: detectSystem('', '', c)
+            }));
+
+          const rootsDetailed = activeRoots.map(root => {
+            const count = gameIndex.filter(g => g.rootPath === root).length;
+            const normRoot = path.normalize(root).toLowerCase();
+            const isCustom = customPaths.some(cp => path.normalize(cp).toLowerCase() === normRoot);
+            return {
+              path: root,
+              displayPath: root.replace(/\//g, '\\'),
+              name: path.basename(root),
+              system: detectSystem('', '', root),
+              count,
+              isCustom,
+              exists: fs.existsSync(root)
+            };
+          });
+
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({
+            success: true,
+            totalGames: gameIndex.length,
+            activeRoots: rootsDetailed,
+            customPaths: customPaths,
+            availableDrives: availableDrives,
+            currentDrive: currentDrive,
+            suggestedFolders: suggestedFolders
+          }));
+        }
+
+        // POST /api/tosec/folders/add - add a custom folder and re-index
+        if (url.pathname === '/api/tosec/folders/add' && req.method === 'POST') {
+          try {
+            const body = await readJsonBody(req);
+            let targetPath = (body.path || '').trim();
+            if (!targetPath) {
+              res.statusCode = 400;
+              return res.end(JSON.stringify({ success: false, error: 'Path cannot be empty' }));
+            }
+            targetPath = path.resolve(targetPath);
+            if (!fs.existsSync(targetPath)) {
+              res.statusCode = 400;
+              return res.end(JSON.stringify({ success: false, error: `Folder not found on PC: "${targetPath}"` }));
+            }
+            if (!fs.statSync(targetPath).isDirectory()) {
+              res.statusCode = 400;
+              return res.end(JSON.stringify({ success: false, error: `Path is a file, not a directory: "${targetPath}"` }));
+            }
+
+            const current = loadCustomConfigPaths();
+            const normTarget = path.normalize(targetPath).toLowerCase();
+            if (!current.some(p => path.normalize(p).toLowerCase() === normTarget)) {
+              current.push(targetPath);
+              saveCustomConfigPaths(current);
+            }
+
+            buildIndex(true);
+
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({
+              success: true,
+              totalGames: gameIndex.length,
+              activeRoots: activeRoots,
+              added: targetPath
+            }));
+          } catch (err) {
+            res.statusCode = 500;
+            return res.end(JSON.stringify({ success: false, error: err.message }));
+          }
+        }
+
+        // POST /api/tosec/folders/remove - remove a custom folder and re-index
+        if (url.pathname === '/api/tosec/folders/remove' && req.method === 'POST') {
+          try {
+            const body = await readJsonBody(req);
+            const targetPath = (body.path || '').trim();
+            if (targetPath) {
+              const current = loadCustomConfigPaths();
+              const normTarget = path.normalize(targetPath).toLowerCase();
+              const filtered = current.filter(p => path.normalize(p).toLowerCase() !== normTarget);
+              saveCustomConfigPaths(filtered);
+              buildIndex(true);
+            }
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({
+              success: true,
+              totalGames: gameIndex.length,
+              activeRoots: activeRoots
+            }));
+          } catch (err) {
+            res.statusCode = 500;
+            return res.end(JSON.stringify({ success: false, error: err.message }));
+          }
+        }
+
+        // GET /api/tosec/browse - browse directories for the folder selector
+        if (url.pathname === '/api/tosec/browse') {
+          try {
+            let browsePath = (url.searchParams.get('path') || '').trim();
+            if (!browsePath) {
+              browsePath = path.resolve(process.cwd(), '..');
+            } else {
+              browsePath = path.resolve(browsePath);
+            }
+
+            if (!fs.existsSync(browsePath)) {
+              res.statusCode = 400;
+              return res.end(JSON.stringify({ success: false, error: `Directory not found: "${browsePath}"` }));
+            }
+
+            const entries = fs.readdirSync(browsePath, { withFileTypes: true });
+            const folders = entries
+              .filter(e => e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules')
+              .map(e => {
+                const full = path.join(browsePath, e.name);
+                const lower = e.name.toLowerCase();
+                const isLikelyGame = lower.includes('amiga') || lower.includes('tosec') || lower.includes('cd32') || lower.includes('c64') || lower.includes('game') || lower.includes('rom');
+                return {
+                  name: e.name,
+                  path: full,
+                  displayPath: full.replace(/\//g, '\\'),
+                  isLikelyGame
+                };
+              });
+
+            const parentPath = path.dirname(browsePath);
+            const canGoUp = parentPath && parentPath !== browsePath;
+
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({
+              success: true,
+              current: browsePath,
+              displayCurrent: browsePath.replace(/\//g, '\\'),
+              parent: canGoUp ? parentPath : null,
+              folders
+            }));
+          } catch (err) {
+            res.statusCode = 500;
+            return res.end(JSON.stringify({ success: false, error: err.message }));
+          }
+        }
 
         // 1. Stats endpoint: /api/tosec/stats
         if (url.pathname === '/api/tosec/stats') {
@@ -843,7 +1094,7 @@ export function tosecAmigaServerPlugin() {
 
           let curatedCheats = [];
           const cheatsPath = path.resolve('src/data/amiga-cheats.json');
-          const fallbackPath = 'C:/Users/adria/Desktop/Amiga Emulator/quest-amiga-xr/public/data/amiga-cheats.json';
+          const fallbackPath = path.resolve('public/data/amiga-cheats.json');
           try {
             const targetFile = fs.existsSync(cheatsPath) ? cheatsPath : fallbackPath;
             if (fs.existsSync(targetFile)) {
@@ -1029,7 +1280,7 @@ export function tosecAmigaServerPlugin() {
             fullPath = match.fullPath;
           } else if (safeRel.startsWith('__public__')) {
             const pubRel = safeRel.replace('__public__/', '').replace('__public__\\', '');
-            fullPath = path.join('C:/Users/adria/Desktop/Amiga Emulator/quest-amiga-xr/public/disks', pubRel);
+            fullPath = path.join(path.resolve('public/disks'), pubRel);
           } else {
             // Search all active roots
             for (const root of activeRoots) {

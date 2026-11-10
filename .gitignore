@@ -6,6 +6,7 @@ dist/
 
 # TOSEC index cache (110MB - exceeds GitHub 100MB limit)
 .tosec_index_cache.json
+.tosec_paths.json
 
 # Extracted caches and temporary directories
 .extracted_cache/

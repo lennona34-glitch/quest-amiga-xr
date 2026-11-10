@@ -827,16 +827,24 @@ export function getC128Releases(query = '') {
 
 export async function downloadSceneDisk(url, title, system = 'c64', preferredName = '', localRel = '') {
   if (localRel) {
-    const candidatePath = path.join('C:/Users/adria/Desktop/Amiga Emulator', localRel);
-    if (fs.existsSync(candidatePath)) {
-      return {
-        success: true,
-        file: path.basename(candidatePath),
-        relPath: localRel,
-        fullPath: candidatePath,
-        system: system,
-        title: title
-      };
+    const parentDir = path.resolve(process.cwd(), '..');
+    const candidates = [
+      path.join(parentDir, localRel),
+      path.join(process.cwd(), 'public/disks', localRel),
+      path.join('X:/Amiga Emulator', localRel),
+      path.join('C:/Users/adria/Desktop/Amiga Emulator', localRel)
+    ];
+    for (const candidatePath of candidates) {
+      if (fs.existsSync(candidatePath)) {
+        return {
+          success: true,
+          file: path.basename(candidatePath),
+          relPath: localRel,
+          fullPath: candidatePath,
+          system: system,
+          title: title
+        };
+      }
     }
   }
 

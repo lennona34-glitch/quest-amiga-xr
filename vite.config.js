@@ -16,7 +16,7 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp'
     },
     watch: {
-      ignored: ['**/.*/**', '**/node_modules/**', '**/dist/**', '**/public/disks/**', '**/chrome_profile*/**', '**/scratch*/**', '**/*.iso', '**/*.adf', '**/*.zip']
+      ignored: ['**/.*/**', '**/node_modules/**', '**/dist/**', '**/public/disks/**', '**/chrome_*/**', '**/scratch*/**', '**/*.iso', '**/*.adf', '**/*.zip', '**/.tosec*']
     }
   }
 });

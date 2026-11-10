@@ -31,6 +31,9 @@ export class TosecUI {
     this.sceneModalOpen = false;
     this.displayModalOpen = false;
     this.netplayModalOpen = false;
+    this.foldersModalOpen = false;
+    this.currentBrowsePath = '';
+    this.currentBrowseParent = null;
     this.activeScenePortal = 'csdb';
     this.activeDemoPlatform = 'all';
 
@@ -84,6 +87,7 @@ export class TosecUI {
         <div class="zen-floating-bar" id="zen_floating_bar">
           <span class="zen-brand">/// COMMODORE ZEN</span>
           <button class="zen-pill-btn zen-crt-btn" id="zen_btn_crt">📺 CRT: OFF</button>
+          <button class="zen-pill-btn" id="zen_btn_folders" title="Manage Game Folders & USB Drives (Shortcut: F)">📁 Folders (F)</button>
           <button class="zen-pill-btn" id="zen_btn_display" title="Deep Graphics & Display Options (Shortcut: O)">⚙️ Display (O)</button>
           <button class="zen-pill-btn" id="zen_btn_scene" title="Community Scene Vault (Shortcut: V)">🏛️ Scene (V)</button>
           <button class="zen-pill-btn" id="zen_btn_cheats" title="Cheats & POKEs (Shortcut: C)">⚡ Cheats (C)</button>
@@ -132,6 +136,7 @@ export class TosecUI {
           </div>
 
           <div class="header-right">
+            <button id="btn_header_folders" class="hud-btn btn-folders" title="Manage Game Folders & USB Drives (Keyboard Shortcut: F)"><span class="btn-icon">📁</span> <span class="btn-text">Folders</span></button>
             <button id="btn_crt_filter" class="hud-btn btn-crt" title="Toggle Authentic Commodore 1084S 'Easy CRT' Filter (Scanlines & Phosphors)"><span class="btn-icon">📺</span> <span class="btn-text">CRT: OFF</span></button>
             <button id="btn_display_options" class="hud-btn btn-display" title="Deep Graphics & Display Options: GPU Shader / Software, Overscan, Stencils, Palette, Run-Ahead (Keyboard Shortcut: O)"><span class="btn-icon">⚙️</span> <span class="btn-text">Display</span></button>
             <button id="btn_netplay" class="hud-btn btn-netplay" title="Copperline P2P Netplay: Multi-device 2-player real-time gaming (Shortcut: N)"><span class="btn-icon">🌐</span> <span class="btn-text">Netplay</span></button>
@@ -182,6 +187,7 @@ export class TosecUI {
                 <span class="catalog-stats" id="catalog_stats">Scanning archive...</span>
               </div>
               <div class="catalog-header-actions">
+                <button id="btn_game_folders" class="mini-btn folders-btn" title="Manage Game Folders & USB Drives (Shortcut: F)">📁 Folders</button>
                 <button id="btn_tosec_rescan" class="mini-btn rescan-btn" title="Rescan for newly downloaded disks or ISOs">🔄 Rescan</button>
               </div>
             </div>
@@ -509,6 +515,104 @@ export class TosecUI {
             </div>
           </div>
         </div>
+
+        <!-- Game Folders & Drives Manager Modal -->
+        <div class="scene-modal-overlay" id="folders_modal_overlay" style="display:none;">
+          <div class="scene-modal folders-modal-card" id="folders_modal">
+            <div class="scene-header">
+              <div class="scene-title-box">
+                <span class="scene-badge">STORAGE &amp; DRIVES ///</span>
+                <h3>📁 Game Folders &amp; Drive Manager</h3>
+              </div>
+              <button class="scene-close-btn" id="btn_close_folders" title="Close (Esc or F)">✕</button>
+            </div>
+
+            <div class="folders-modal-body">
+              <!-- Top Summary Banner -->
+              <div class="folders-status-hero">
+                <div class="folders-hero-stat">
+                  <span class="stat-icon">💾</span>
+                  <div class="stat-info">
+                    <span class="stat-label">Active Drive</span>
+                    <span class="stat-value" id="folders_active_drive">--</span>
+                  </div>
+                </div>
+                <div class="folders-hero-stat">
+                  <span class="stat-icon">🎮</span>
+                  <div class="stat-info">
+                    <span class="stat-label">Disks Online</span>
+                    <span class="stat-value" id="folders_total_games">--</span>
+                  </div>
+                </div>
+                <div class="folders-hero-stat">
+                  <span class="stat-icon">📂</span>
+                  <div class="stat-info">
+                    <span class="stat-label">Active Roots</span>
+                    <span class="stat-value" id="folders_active_roots_count">--</span>
+                  </div>
+                </div>
+                <button class="btn-rescan-large" id="btn_modal_rescan" title="Force complete re-indexing of all configured folders">🔄 Rescan All</button>
+              </div>
+
+              <!-- Section 1: Active Scanned Folders -->
+              <div class="folders-section">
+                <div class="folders-section-header">
+                  <h4>📂 Active Scanned Folders</h4>
+                  <span class="folders-section-hint">Disks in these folders are instantly searchable, bootable, and playable.</span>
+                </div>
+                <div class="folders-list" id="folders_active_list">
+                  <div class="loading-spinner">Loading folder list...</div>
+                </div>
+              </div>
+
+              <!-- Section 2: Add New Game Folder -->
+              <div class="folders-section">
+                <div class="folders-section-header">
+                  <h4>➕ Add Game Folder / USB Drive Path</h4>
+                  <span class="folders-section-hint">Paste or type any directory path on your PC or USB drive (e.g. <code>X:\Games</code> or <code>D:\Amiga TOSEC</code>)</span>
+                </div>
+
+                <div class="folders-quick-drives">
+                  <span class="quick-drives-label">Detected Drives:</span>
+                  <div class="drive-pills-row" id="folders_drive_pills"></div>
+                </div>
+
+                <div class="folder-input-row">
+                  <input type="text" id="input_custom_folder" placeholder="Enter folder path (e.g. X:\Games or X:\Amiga Emulator\Commodore Amiga [TOSEC])" autocomplete="off" />
+                  <button id="btn_add_folder" class="btn-add-folder">➕ Add Folder</button>
+                  <button id="btn_toggle_browse" class="btn-browse-folder" title="Browse directories on disk">🔍 Browse...</button>
+                </div>
+                <div id="folders_feedback" class="folders-feedback" style="display:none;"></div>
+
+                <!-- Embedded Drive/Directory Browser -->
+                <div id="folders_browser_pane" class="folders-browser-pane" style="display:none;">
+                  <div class="browser-header">
+                    <span class="browser-current-path" id="browser_current_path">Path: /</span>
+                    <div class="browser-actions">
+                      <button class="mini-btn" id="btn_browser_up">⬆ Up</button>
+                      <button class="mini-btn browser-select-btn" id="btn_browser_use_current">✓ Add Current Folder</button>
+                      <button class="mini-btn" id="btn_browser_close">✕ Close</button>
+                    </div>
+                  </div>
+                  <div class="browser-list" id="browser_dir_list"></div>
+                </div>
+              </div>
+
+              <!-- Section 3: Discovered / Suggested Folders -->
+              <div class="folders-section" id="folders_suggested_section" style="display:none;">
+                <div class="folders-section-header">
+                  <h4>✨ Discovered Commodore Folders On Connected Drives</h4>
+                  <span class="folders-section-hint">Found on attached drives. Click "+ Add to Library" to index.</span>
+                </div>
+                <div class="folders-suggested-list" id="folders_suggested_list"></div>
+              </div>
+            </div>
+
+            <div class="scene-footer">
+              <span>💡 <strong>Portable USB Freedom:</strong> Move Commodore Guardian to any USB drive or external SSD without losing games! Press <kbd>F</kbd> or <kbd>Esc</kbd> to toggle.</span>
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
@@ -705,6 +809,101 @@ export class TosecUI {
       el.querySelector('#df1_disk_name').textContent = 'Empty';
       if (this.onDiskEject) this.onDiskEject(1);
     });
+
+    // Game Folders & Drives Manager Modal Events
+    const btnGameFolders = el.querySelector('#btn_game_folders');
+    const btnHeaderFolders = el.querySelector('#btn_header_folders');
+    const zenBtnFolders = el.querySelector('#zen_btn_folders');
+    const btnCloseFolders = el.querySelector('#btn_close_folders');
+    const foldersOverlay = el.querySelector('#folders_modal_overlay');
+    const btnAddFolder = el.querySelector('#btn_add_folder');
+    const inputCustomFolder = el.querySelector('#input_custom_folder');
+    const btnModalRescan = el.querySelector('#btn_modal_rescan');
+    const btnToggleBrowse = el.querySelector('#btn_toggle_browse');
+    const btnBrowserClose = el.querySelector('#btn_browser_close');
+    const btnBrowserUp = el.querySelector('#btn_browser_up');
+    const btnBrowserUseCurrent = el.querySelector('#btn_browser_use_current');
+
+    if (btnGameFolders) btnGameFolders.addEventListener('click', () => this.toggleFoldersModal());
+    if (btnHeaderFolders) btnHeaderFolders.addEventListener('click', () => this.toggleFoldersModal());
+    if (zenBtnFolders) zenBtnFolders.addEventListener('click', () => this.toggleFoldersModal());
+    if (btnCloseFolders) btnCloseFolders.addEventListener('click', () => this.closeFoldersModal());
+    if (foldersOverlay) {
+      foldersOverlay.addEventListener('click', (e) => {
+        if (e.target === foldersOverlay) this.closeFoldersModal();
+      });
+    }
+
+    if (btnAddFolder && inputCustomFolder) {
+      btnAddFolder.addEventListener('click', () => {
+        const val = inputCustomFolder.value.trim();
+        if (val) this.addCustomFolder(val);
+      });
+      inputCustomFolder.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const val = inputCustomFolder.value.trim();
+          if (val) this.addCustomFolder(val);
+        }
+      });
+    }
+
+    if (btnModalRescan) {
+      btnModalRescan.addEventListener('click', async () => {
+        btnModalRescan.textContent = '⏳ Rescanning...';
+        btnModalRescan.disabled = true;
+        try {
+          await fetch('/api/tosec/rescan');
+          this.playSound('step');
+          await this.fetchStats();
+          await this.refreshFoldersModal();
+          this.refreshCatalog(searchInput ? searchInput.value : '');
+        } catch(e) {
+          console.warn('Rescan error:', e);
+        } finally {
+          btnModalRescan.textContent = '🔄 Rescan All';
+          btnModalRescan.disabled = false;
+        }
+      });
+    }
+
+    if (btnToggleBrowse) {
+      btnToggleBrowse.addEventListener('click', () => {
+        const pane = el.querySelector('#folders_browser_pane');
+        if (pane) {
+          const isShown = pane.style.display !== 'none';
+          pane.style.display = isShown ? 'none' : 'block';
+          if (!isShown) {
+            const startPath = (inputCustomFolder && inputCustomFolder.value.trim()) || '';
+            this.browseDirectory(startPath);
+          }
+        }
+      });
+    }
+
+    if (btnBrowserClose) {
+      btnBrowserClose.addEventListener('click', () => {
+        const pane = el.querySelector('#folders_browser_pane');
+        if (pane) pane.style.display = 'none';
+      });
+    }
+
+    if (btnBrowserUp) {
+      btnBrowserUp.addEventListener('click', () => {
+        if (this.currentBrowseParent) {
+          this.browseDirectory(this.currentBrowseParent);
+        }
+      });
+    }
+
+    if (btnBrowserUseCurrent && inputCustomFolder) {
+      btnBrowserUseCurrent.addEventListener('click', () => {
+        if (this.currentBrowsePath) {
+          inputCustomFolder.value = this.currentBrowsePath;
+          this.addCustomFolder(this.currentBrowsePath);
+        }
+      });
+    }
 
     // Cheats UI Buttons & Modal Events
     const btnCheats = el.querySelector('#btn_cheats');
@@ -1079,6 +1278,12 @@ export class TosecUI {
       // Only block plain-letter hotkeys when typing into an input field or textarea
       const isInputActive = activeTag === 'input' || activeTag === 'textarea';
 
+      // 'F' key toggles Game Folders (when not typing in search box)
+      if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.altKey && !e.metaKey && !isInputActive) {
+        e.preventDefault();
+        this.toggleFoldersModal();
+      }
+
       // 'N' key toggles Copperline Netplay (when not typing in search box)
       if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.altKey && !e.metaKey && !isInputActive) {
         e.preventDefault();
@@ -1117,6 +1322,11 @@ export class TosecUI {
 
       // Escape closes open modals, releases mouse lock, or exits Zen mode
       if (e.key === 'Escape') {
+        if (this.foldersModalOpen) {
+          e.preventDefault();
+          this.closeFoldersModal();
+          return;
+        }
         if (this.displayModalOpen) {
           e.preventDefault();
           this.closeDisplayModal();
@@ -1409,6 +1619,304 @@ export class TosecUI {
     this.showToast(isNowActive 
       ? '📺 <strong>Authentic 1084S CRT: ENABLED</strong> (Scanlines & Phosphors active)' 
       : '📺 <strong>Authentic 1084S CRT: DISABLED</strong> (Clean Crisp Pixels)');
+  }
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  toggleFoldersModal(force) {
+    if (force !== undefined) {
+      this.foldersModalOpen = !!force;
+    } else {
+      this.foldersModalOpen = !this.foldersModalOpen;
+    }
+    const overlay = document.getElementById('folders_modal_overlay');
+    if (overlay) {
+      overlay.style.display = this.foldersModalOpen ? 'flex' : 'none';
+      if (this.foldersModalOpen) {
+        this.closeDisplayModal();
+        this.closeSceneModal();
+        this.closeCheatsModal();
+        this.closeNetplayModal();
+        this.playSound('step');
+        this.refreshFoldersModal();
+      }
+    }
+  }
+
+  openFoldersModal() {
+    this.toggleFoldersModal(true);
+  }
+
+  closeFoldersModal() {
+    this.toggleFoldersModal(false);
+  }
+
+  async refreshFoldersModal() {
+    const listEl = document.getElementById('folders_active_list');
+    const driveVal = document.getElementById('folders_active_drive');
+    const totalVal = document.getElementById('folders_total_games');
+    const rootsCountVal = document.getElementById('folders_active_roots_count');
+    const drivePills = document.getElementById('folders_drive_pills');
+    const suggestedSec = document.getElementById('folders_suggested_section');
+    const suggestedList = document.getElementById('folders_suggested_list');
+
+    try {
+      const res = await fetch('/api/tosec/folders');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to fetch folders');
+
+      if (driveVal) driveVal.textContent = data.currentDrive || 'X:\\';
+      if (totalVal) totalVal.textContent = (data.totalGames || 0).toLocaleString();
+      if (rootsCountVal) rootsCountVal.textContent = (data.activeRoots || []).length;
+
+      // Render Drive Pills
+      if (drivePills) {
+        drivePills.innerHTML = '';
+        (data.availableDrives || []).forEach(drive => {
+          const pill = document.createElement('button');
+          pill.className = `drive-pill ${drive === (data.currentDrive ? data.currentDrive.replace(/[\\/]/g, '') : '') ? 'active' : ''}`;
+          pill.textContent = `${drive}\\`;
+          pill.title = `Click to browse or set path to ${drive}\\`;
+          pill.addEventListener('click', () => {
+            const input = document.getElementById('input_custom_folder');
+            if (input) {
+              input.value = `${drive}\\`;
+              input.focus();
+            }
+            const pane = document.getElementById('folders_browser_pane');
+            if (pane) pane.style.display = 'block';
+            this.browseDirectory(`${drive}\\`);
+          });
+          drivePills.appendChild(pill);
+        });
+      }
+
+      // Render Active Scanned Folders
+      if (listEl) {
+        if (!data.activeRoots || data.activeRoots.length === 0) {
+          listEl.innerHTML = `
+            <div class="empty-folder-box">
+              <span class="empty-icon">⚠️</span>
+              <p>No active game folders found on this drive.</p>
+              <span>Add your TOSEC directory or game folder above to populate the library!</span>
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = data.activeRoots.map(root => {
+            const sysBadge = (root.system || 'amiga').toUpperCase();
+            return `
+              <div class="folder-card ${root.isCustom ? 'custom-folder' : 'auto-folder'}">
+                <div class="folder-card-main">
+                  <div class="folder-icon-box">📁</div>
+                  <div class="folder-details">
+                    <div class="folder-title-row">
+                      <span class="folder-name">${this.escapeHtml(root.name)}</span>
+                      <span class="folder-sys-badge sys-${root.system || 'amiga'}">${sysBadge}</span>
+                      ${root.isCustom ? '<span class="folder-tag-custom">Custom</span>' : '<span class="folder-tag-auto">⚡ Auto-Detected</span>'}
+                    </div>
+                    <span class="folder-full-path" title="${this.escapeHtml(root.displayPath)}">${this.escapeHtml(root.displayPath)}</span>
+                  </div>
+                </div>
+                <div class="folder-card-actions">
+                  <span class="folder-disk-count">${(root.count || 0).toLocaleString()} disks</span>
+                  ${root.isCustom ? `<button class="btn-remove-folder" data-path="${this.escapeHtml(root.path)}" title="Remove this folder from library">🗑️ Remove</button>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          // Bind remove buttons
+          listEl.querySelectorAll('.btn-remove-folder').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const p = e.currentTarget.dataset.path;
+              if (p) this.removeCustomFolder(p);
+            });
+          });
+        }
+      }
+
+      // Render Suggested Folders
+      if (suggestedSec && suggestedList) {
+        if (data.suggestedFolders && data.suggestedFolders.length > 0) {
+          suggestedSec.style.display = 'block';
+          suggestedList.innerHTML = data.suggestedFolders.map(s => `
+            <div class="suggested-folder-card">
+              <div class="suggested-info">
+                <span class="suggested-name">📁 ${this.escapeHtml(s.name)}</span>
+                <span class="suggested-path">${this.escapeHtml(s.displayPath)}</span>
+              </div>
+              <button class="btn-add-suggested" data-path="${this.escapeHtml(s.path)}">➕ Add to Library</button>
+            </div>
+          `).join('');
+
+          suggestedList.querySelectorAll('.btn-add-suggested').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const p = e.currentTarget.dataset.path;
+              if (p) this.addCustomFolder(p);
+            });
+          });
+        } else {
+          suggestedSec.style.display = 'none';
+        }
+      }
+    } catch(err) {
+      console.warn('Failed to refresh folders modal:', err);
+      if (listEl) {
+        listEl.innerHTML = `<div class="error-notice">⚠️ Error loading folders: ${this.escapeHtml(err.message)}</div>`;
+      }
+    }
+  }
+
+  async addCustomFolder(folderPath) {
+    const feedback = document.getElementById('folders_feedback');
+    const input = document.getElementById('input_custom_folder');
+    const btnAdd = document.getElementById('btn_add_folder');
+
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.className = 'folders-feedback loading';
+      feedback.innerHTML = '⏳ Verifying folder and indexing games...';
+    }
+    if (btnAdd) btnAdd.disabled = true;
+
+    try {
+      const res = await fetch('/api/tosec/folders/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: folderPath })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to add folder');
+      }
+
+      if (feedback) {
+        feedback.className = 'folders-feedback success';
+        feedback.innerHTML = `✅ Successfully added folder! Total games: <strong>${data.totalGames.toLocaleString()}</strong>`;
+        setTimeout(() => {
+          if (feedback) feedback.style.display = 'none';
+        }, 4000);
+      }
+      if (input) input.value = '';
+      this.playSound('insert');
+      await this.refreshFoldersModal();
+      await this.fetchStats();
+      const searchInput = document.getElementById('tosec_search_input');
+      this.refreshCatalog(searchInput ? searchInput.value : '');
+    } catch(err) {
+      if (feedback) {
+        feedback.className = 'folders-feedback error';
+        feedback.innerHTML = `❌ ${this.escapeHtml(err.message)}`;
+      }
+    } finally {
+      if (btnAdd) btnAdd.disabled = false;
+    }
+  }
+
+  async removeCustomFolder(folderPath) {
+    const feedback = document.getElementById('folders_feedback');
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.className = 'folders-feedback loading';
+      feedback.innerHTML = '⏳ Removing folder and rebuilding index...';
+    }
+    try {
+      const res = await fetch('/api/tosec/folders/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: folderPath })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to remove folder');
+      if (feedback) {
+        feedback.className = 'folders-feedback success';
+        feedback.innerHTML = `✅ Folder removed. Total games: <strong>${data.totalGames.toLocaleString()}</strong>`;
+        setTimeout(() => {
+          if (feedback) feedback.style.display = 'none';
+        }, 3000);
+      }
+      this.playSound('eject');
+      await this.refreshFoldersModal();
+      await this.fetchStats();
+      const searchInput = document.getElementById('tosec_search_input');
+      this.refreshCatalog(searchInput ? searchInput.value : '');
+    } catch(err) {
+      if (feedback) {
+        feedback.className = 'folders-feedback error';
+        feedback.innerHTML = `❌ ${this.escapeHtml(err.message)}`;
+      }
+    }
+  }
+
+  async browseDirectory(targetPath = '') {
+    const pathLabel = document.getElementById('browser_current_path');
+    const dirList = document.getElementById('browser_dir_list');
+    const btnUp = document.getElementById('btn_browser_up');
+
+    if (dirList) dirList.innerHTML = '<div class="loading-spinner">Reading directory...</div>';
+
+    try {
+      const res = await fetch(`/api/tosec/browse?path=${encodeURIComponent(targetPath)}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to browse directory');
+
+      this.currentBrowsePath = data.current;
+      this.currentBrowseParent = data.parent;
+
+      if (pathLabel) pathLabel.textContent = `Path: ${data.displayCurrent}`;
+      if (btnUp) btnUp.disabled = !data.parent;
+
+      if (dirList) {
+        if (!data.folders || data.folders.length === 0) {
+          dirList.innerHTML = '<div class="browser-empty">No subfolders in this directory.</div>';
+        } else {
+          dirList.innerHTML = data.folders.map(f => `
+            <div class="browser-item ${f.isLikelyGame ? 'highlight-game' : ''}">
+              <div class="browser-item-left" data-path="${this.escapeHtml(f.path)}">
+                <span class="browser-folder-icon">📁</span>
+                <span class="browser-folder-name">${this.escapeHtml(f.name)}</span>
+                ${f.isLikelyGame ? '<span class="browser-game-badge">Game / Archive</span>' : ''}
+              </div>
+              <div class="browser-item-actions">
+                <button class="mini-btn btn-browser-select" data-path="${this.escapeHtml(f.path)}" title="Select this directory">Select</button>
+              </div>
+            </div>
+          `).join('');
+
+          // Clicking left side navigates inside
+          dirList.querySelectorAll('.browser-item-left').forEach(el => {
+            el.addEventListener('click', (e) => {
+              const p = e.currentTarget.dataset.path;
+              if (p) this.browseDirectory(p);
+            });
+          });
+
+          // Clicking select sets input
+          dirList.querySelectorAll('.btn-browser-select').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const p = e.currentTarget.dataset.path;
+              const input = document.getElementById('input_custom_folder');
+              if (input && p) {
+                input.value = p;
+                input.focus();
+              }
+            });
+          });
+        }
+      }
+    } catch(err) {
+      if (dirList) {
+        dirList.innerHTML = `<div class="browser-error">⚠️ ${this.escapeHtml(err.message)}</div>`;
+      }
+    }
   }
 
   setZenMode(isZen) {
